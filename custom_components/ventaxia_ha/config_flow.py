@@ -127,7 +127,33 @@ class VentAxiaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None) -> ConfigFlowResult:
-        return self.async_show_menu(step_id="user", menu_options=[KINETIC, ECONIQ])
+        if user_input is not None:
+            if user_input[CONF_DEVICE_TYPE] == ECONIQ:
+                return await self.async_step_econiq()
+            return await self.async_step_kinetic()
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_DEVICE_TYPE): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                {
+                                    "label": "Sentinel Kinetic Advance S",
+                                    "value": KINETIC,
+                                },
+                                {
+                                    "label": "Sentinel Econiq (MQTT TLS-PSK)",
+                                    "value": ECONIQ,
+                                },
+                            ],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    )
+                }
+            ),
+        )
 
     async def async_step_econiq(self, user_input=None) -> ConfigFlowResult:
         errors = {}

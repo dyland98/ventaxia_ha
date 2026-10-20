@@ -22,16 +22,15 @@ KINETIC_DATA = {
 }
 
 
-def test_device_menu_translations_cover_current_and_legacy_steps():
+def test_device_selector_field_is_translated_in_all_catalogs():
     translation_dir = (
         Path(__file__).parents[1] / "custom_components" / "ventaxia_ha" / "translations"
     )
     for path in translation_dir.glob("*.json"):
         translations = json.loads(path.read_text(encoding="utf-8"))
         steps = translations["config"]["step"]
-        expected = steps["user"]["menu_options"]
-        assert set(expected) == {"kinetic", "econiq"}, path.name
-        assert steps["kinetic"]["menu_options"] == expected, path.name
+        assert steps["user"]["data"]["device_type"], path.name
+        assert set(steps["kinetic"]["menu_options"]) == {"kinetic", "econiq"}
 
 
 async def start_flow(hass, step):
@@ -40,10 +39,23 @@ async def start_flow(hass, step):
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
-    assert result["type"] == "menu"
+    assert result["type"] == "form"
     return await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"next_step_id": step}
+        result["flow_id"], {"device_type": step}
     )
+
+
+async def test_device_selector_has_explicit_labels(hass):
+    if "frontend" not in hass.config.components:
+        mock_component(hass, "frontend")
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    options = result["data_schema"].schema["device_type"].config["options"]
+    assert options == [
+        {"label": "Sentinel Kinetic Advance S", "value": "kinetic"},
+        {"label": "Sentinel Econiq (MQTT TLS-PSK)", "value": "econiq"},
+    ]
 
 
 async def test_econiq_success_and_duplicate(hass, econiq_data):

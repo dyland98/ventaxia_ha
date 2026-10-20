@@ -18,9 +18,8 @@
       },
       "user": {
         "title": "Vent Axia",
-        "menu_options": {
-          "kinetic": "Sentinel Kinetic Advance S",
-          "econiq": "Sentinel Econiq (MQTT TLS-PSK)"
+        "data": {
+          "device_type": "Device model"
         }
       },
       "econiq": {
