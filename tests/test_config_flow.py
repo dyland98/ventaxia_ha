@@ -1,5 +1,7 @@
 """Config flow routes models separately and preserves Kinetic identifiers."""
 
+import json
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import aiomqtt
@@ -18,6 +20,18 @@ KINETIC_DATA = {
     "psk_key": "synthetic-wifi-key",
     "wifi_device_id": "KINETIC-TEST",
 }
+
+
+def test_device_menu_translations_cover_current_and_legacy_steps():
+    translation_dir = (
+        Path(__file__).parents[1] / "custom_components" / "ventaxia_ha" / "translations"
+    )
+    for path in translation_dir.glob("*.json"):
+        translations = json.loads(path.read_text(encoding="utf-8"))
+        steps = translations["config"]["step"]
+        expected = steps["user"]["menu_options"]
+        assert set(expected) == {"kinetic", "econiq"}, path.name
+        assert steps["kinetic"]["menu_options"] == expected, path.name
 
 
 async def start_flow(hass, step):

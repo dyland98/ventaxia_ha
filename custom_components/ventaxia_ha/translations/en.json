@@ -4,6 +4,10 @@
       "kinetic": {
         "title": "Vent Axia Integration for the Sentinel Kinetic Advance S MVHR",
         "description": "Enter your device's connection info. The WiFi Key and SSID can be found on the device label.",
+        "menu_options": {
+          "kinetic": "Sentinel Kinetic Advance S",
+          "econiq": "Sentinel Econiq (MQTT TLS-PSK)"
+        },
         "data": {
           "host": "Host",
           "port": "Port",

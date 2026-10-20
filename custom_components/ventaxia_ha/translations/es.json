@@ -4,6 +4,10 @@
       "kinetic": {
         "title": "Vent Axia Integración para el Sentinel Kinetic Advance S MVHR",
         "description": "Introduce la información de conexión de tu dispositivo. La clave WiFi y el Identificador de Red se encuentran en la etiqueta del dispositivo.",
+        "menu_options": {
+          "kinetic": "Sentinel Kinetic Advance S",
+          "econiq": "Sentinel Econiq (MQTT TLS-PSK)"
+        },
         "data": {
           "host": "Anfitrión",
           "port": "Puerto",
