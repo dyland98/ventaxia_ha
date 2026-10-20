@@ -113,7 +113,9 @@ async def validate_econiq(hass, data):
         data, f"ha-econiq-check-{uuid.uuid4().hex[:12]}", context
     ) as client:
         subscription = await client.subscribe(cache.prefix + "#", qos=0)
-        if subscription and any(int(reason) >= 128 for reason in subscription):
+        if subscription and any(
+            int(getattr(reason, "value", reason)) >= 128 for reason in subscription
+        ):
             raise CannotConnect("MQTT subscription was rejected")
         # Keep connection and subscription outside this timeout so their errors
         # cannot be mistaken for missing telemetry.

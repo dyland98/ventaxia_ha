@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import aiomqtt
@@ -136,12 +137,27 @@ async def test_validation_receives_metadata_without_commands(
     hass, econiq_data, fake_client
 ):
     fake_client.metadata()
+    fake_client.subscribe.return_value = [SimpleNamespace(value=0)]
     with patch(
         "custom_components.ventaxia_ha.config_flow.create_client",
         return_value=fake_client,
     ):
         assert await validate_econiq(hass, econiq_data) == {"title": "Econiq 300"}
     fake_client.publish.assert_not_awaited()
+    assert fake_client.closed
+
+
+async def test_validation_accepts_paho_reason_code_suback(
+    hass, econiq_data, fake_client
+):
+    fake_client.subscribe.return_value = [SimpleNamespace(value=0)]
+    fake_client.feed("vent/afs/fm", b"33")
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.create_client",
+        return_value=fake_client,
+    ):
+        result = await validate_econiq(hass, econiq_data)
+    assert result["title"] == "Sentinel Econiq (vmc.example)"
     assert fake_client.closed
 
 
