@@ -166,6 +166,18 @@
       },
       "cancel_boost": {
         "name": "Annuler Boost (à valider)"
+      },
+      "low_15_unverified": {
+        "name": "Mode Low 15 min (à valider)"
+      },
+      "normal_15_unverified": {
+        "name": "Mode Normal 15 min (à valider)"
+      },
+      "purge_15_unverified": {
+        "name": "Mode Purge 15 min (à valider)"
+      },
+      "maximum_15_unverified": {
+        "name": "Mode Maximum 15 min (à valider)"
       }
     }
   }

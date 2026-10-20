@@ -166,6 +166,18 @@
       },
       "cancel_boost": {
         "name": "Cancel Boost (to validate)"
+      },
+      "low_15_unverified": {
+        "name": "Low mode 15 min (to validate)"
+      },
+      "normal_15_unverified": {
+        "name": "Normal mode 15 min (to validate)"
+      },
+      "purge_15_unverified": {
+        "name": "Purge mode 15 min (to validate)"
+      },
+      "maximum_15_unverified": {
+        "name": "Maximum mode 15 min (to validate)"
       }
     }
   }

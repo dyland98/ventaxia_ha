@@ -123,3 +123,21 @@ class EconiqBoostButton(EconiqEntity, ButtonEntity):
 
     async def async_press(self):
         await self.coordinator.async_boost(self.cancel)
+
+
+class EconiqModeButton(EconiqEntity, ButtonEntity):
+    """Explicit timed mode control; non-Boost modes are marked unverified."""
+
+    MODES = ("low", "normal", "purge", "maximum")
+
+    def __init__(self, coordinator, mode: str):
+        if mode not in self.MODES:
+            raise ValueError("Unsupported Econiq mode button")
+        super().__init__(coordinator, f"{mode}_15_unverified")
+        self.mode = mode
+        self._attr_icon = "mdi:fan"
+        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_entity_registry_enabled_default = False
+
+    async def async_press(self):
+        await self.coordinator.async_set_mode(self.mode, duration_minutes=15)

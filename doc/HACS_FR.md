@@ -130,7 +130,7 @@ restaurer le dossier précédent et son référencement HACS, puis redémarrer.
    Aucune adresse, clé, numéro de série ou préfixe de votre appareil n’est imposé.
 9. La validation établit TLS 1.2 / `PSK-AES128-CBC-SHA`, MQTT 3.1.1, s’abonne
   au préfixe et attend un topic de télémétrie reconnu. Les métadonnées modèle/
-  numéro de série sont utilisées si la VMC les publie, mais ne sont pas requises. Aucune
+  numéro de série sont utilisées si la VMC les publie, mais ne sont pas requises.
    publication de commande n’est nécessaire. Une erreur peut provenir du réseau,
   de la PSK ou d’un refus d’abonnement. Si TLS et l’abonnement MQTT réussissent
   mais qu’aucune télémétrie reconnue n’arrive sous 30 s, vérifier le préfixe et
@@ -157,6 +157,11 @@ et l’activation du Boost, pas ce nouveau code.
   intérieur/extérieur. `trem` reste un attribut brut.
 - Appuyer une fois sur **Boost 15 minutes** : vérifier les messages `vent/caf`
   (`ps: 3`), `vent/cor` et la montée des RPM. L’envoi seul ne confirme pas le Boost.
+- Les commandes **Low**, **Normal**, **Purge** et **Maximum** sont déduites de
+  l’énumération APK, demandent 15 min et sont désactivées par défaut. Cette durée
+  et ces commandes sont à confirmer sur l’appareil. Les activer une par une dans
+  le registre des entités pour les valider. Seul Boost est confirmé.
+  Le mode OFF n’est pas exposé afin d’éviter un arrêt de la ventilation.
 - Activer volontairement l’entité désactivée **Annuler Boost (à valider)**, puis
   tester son bouton. La commande est déduite de l’APK et doit encore être validée
   sur l’appareil. Vérifier le retour de l’état et des ventilateurs. Ne pas annoncer

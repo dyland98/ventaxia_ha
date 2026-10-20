@@ -13,11 +13,13 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.ventaxia_ha.const import DOMAIN
 from custom_components.ventaxia_ha.diagnostics import async_get_config_entry_diagnostics
 from custom_components.ventaxia_ha.econiq import (
+    ECONIQ_MODE_IDS,
     EconiqCache,
     PskUnavailableError,
     boost_payload,
     create_client,
     create_tls_context,
+    mode_payload,
     normalize_prefix,
     parse_psk,
 )
@@ -25,6 +27,7 @@ from custom_components.ventaxia_ha.econiq_coordinator import EconiqCoordinator
 from custom_components.ventaxia_ha.econiq_entities import (
     SENSORS,
     EconiqBoostButton,
+    EconiqModeButton,
     EconiqSensor,
 )
 
@@ -99,6 +102,30 @@ def test_supported_numeric_topics_have_neutral_sensors():
     )
 
 
+@pytest.mark.parametrize(
+    ("mode", "mode_id"),
+    [("low", 1), ("normal", 2), ("boost", 3), ("purge", 4), ("maximum", 5)],
+)
+def test_timed_mode_payloads(mode, mode_id):
+    assert json.loads(mode_payload(mode, 15)) == {
+        "gtm": mode_id,
+        "treq": "00:15:00",
+    }
+    assert "off" not in ECONIQ_MODE_IDS
+
+
+@pytest.mark.parametrize("duration", [0, -1, 61, True])
+def test_mode_payload_rejects_unsafe_duration(duration):
+    with pytest.raises(ValueError):
+        mode_payload("low", duration)
+
+
+def test_mode_payload_rejects_unknown_or_off_mode():
+    for mode in ("off", "reset", "unknown"):
+        with pytest.raises(ValueError):
+            mode_payload(mode)
+
+
 def test_mqtt_client_parameters(econiq_data):
     context = create_tls_context("a1b2", "zirconia")
     with patch("custom_components.ventaxia_ha.econiq.aiomqtt.Client") as factory:
@@ -138,6 +165,14 @@ async def test_reconnect_clean_shutdown_and_commands(hass, econiq_data, fake_cli
             "TEST-UNIT/vent/uo", '{"gtm":3,"treq":"00:00:00"}', qos=0, retain=False
         )
         assert "vent/caf" not in coordinator.cache.values  # No optimistic confirmation.
+        for mode, mode_id in (("low", 1), ("normal", 2), ("purge", 4), ("maximum", 5)):
+            await coordinator.async_set_mode(mode)
+            fake_client.publish.assert_awaited_with(
+                "TEST-UNIT/vent/uo",
+                json.dumps({"gtm": mode_id, "treq": "00:15:00"}, separators=(",", ":")),
+                qos=0,
+                retain=False,
+            )
         fake_client.queue.put_nowait(aiomqtt.MqttError("simulated disconnect"))
         await asyncio.sleep(0)
         assert not coordinator.available
@@ -149,7 +184,7 @@ async def test_reconnect_clean_shutdown_and_commands(hass, econiq_data, fake_cli
             while factory.call_count < 2 or not coordinator.available:
                 await asyncio.sleep(0.01)
         assert factory.call_args_list[0].args[1] == factory.call_args_list[1].args[1]
-        assert fake_client.publish.await_count == 2  # No writes on reconnect.
+        assert fake_client.publish.await_count == 6  # No writes on reconnect.
         await coordinator.async_stop()
         assert (
             fake_client.closed
@@ -204,6 +239,10 @@ async def test_entity_unknown_and_raw_values(hass, econiq_data):
         EconiqBoostButton(coordinator, cancel=True).entity_registry_enabled_default
         is False
     )
+    for mode in EconiqModeButton.MODES:
+        assert (
+            EconiqModeButton(coordinator, mode).entity_registry_enabled_default is False
+        )
     assert json.loads(boost_payload()) == {"gtm": 3, "treq": "00:15:00"}
     coordinator.cache.update(
         "TEST-UNIT/mdet/wifi/sta", b'{"rssi":-72,"ssid":"private"}'

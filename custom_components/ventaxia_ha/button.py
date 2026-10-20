@@ -25,12 +25,16 @@ async def async_setup_entry(
     """Set up VentAxia buttons from a config entry."""
 
     from .econiq import CONF_DEVICE_TYPE, ECONIQ
-    from .econiq_entities import EconiqBoostButton
+    from .econiq_entities import EconiqBoostButton, EconiqModeButton
 
     if config_entry.data.get(CONF_DEVICE_TYPE) == ECONIQ:
         econiq = hass.data[DOMAIN][config_entry.entry_id]
         async_add_entities(
-            [EconiqBoostButton(econiq), EconiqBoostButton(econiq, cancel=True)]
+            [
+                EconiqBoostButton(econiq),
+                EconiqBoostButton(econiq, cancel=True),
+                *(EconiqModeButton(econiq, mode) for mode in EconiqModeButton.MODES),
+            ]
         )
         return
 

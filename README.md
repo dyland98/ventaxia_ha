@@ -105,6 +105,10 @@ The **Boost 15 minutes** button sends `{"gtm":3,"treq":"00:15:00"}` to
 is disabled by default; enable it deliberately to test the APK-derived
 `{"gtm":3,"treq":"00:00:00"}`. Neither button changes the displayed mode until
 telemetry confirms it. No commands are sent on startup or reconnection.
+Timed Econiq buttons for LOW (1), NORMAL (2), PURGE (4) and MAXIMUM (5) are also
+provided for 15 minutes based on the supplied APK enum. They are disabled by
+default and marked to validate because only Boost has been confirmed on hardware.
+OFF (0) is intentionally not exposed because it could stop ventilation.
 The bundled Kinetic dashboard card and services are for Kinetic entries only.
 
 ## Kinetic configuration

@@ -10,6 +10,7 @@ from custom_components.ventaxia_ha.button import async_setup_entry as setup_butt
 from custom_components.ventaxia_ha.const import DOMAIN
 from custom_components.ventaxia_ha.econiq_entities import (
     EconiqBoostButton,
+    EconiqModeButton,
     EconiqSensor,
 )
 from custom_components.ventaxia_ha.sensor import async_setup_entry as setup_sensors
@@ -34,9 +35,9 @@ async def test_econiq_platforms(hass, econiq_data, fake_client):
         await setup_sensors(hass, entry, lambda entities: sensors.extend(entities))
         await setup_buttons(hass, entry, lambda entities: buttons.extend(entities))
         assert len(sensors) > 20 and all(isinstance(s, EconiqSensor) for s in sensors)
-        assert len(buttons) == 2 and all(
-            isinstance(b, EconiqBoostButton) for b in buttons
-        )
+        assert len(buttons) == 6
+        assert sum(isinstance(button, EconiqBoostButton) for button in buttons) == 2
+        assert sum(isinstance(button, EconiqModeButton) for button in buttons) == 4
         assert len({s.unique_id for s in sensors}) == len(sensors)
         assert {s.device_info["identifiers"].pop() for s in sensors} == {
             (DOMAIN, "econiq:TEST-UNIT")

@@ -12,10 +12,12 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from .const import DOMAIN
 from .econiq import (
     CONF_PREFIX,
+    ECONIQ_MODE_IDS,
     EconiqCache,
     boost_payload,
     create_client,
     create_tls_context,
+    mode_payload,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,12 +109,21 @@ class EconiqCoordinator:
             delay = min(delay * 2, 60)
 
     async def async_boost(self, cancel=False):
+        await self._async_publish_command(boost_payload(cancel))
+
+    async def async_set_mode(self, mode: str, duration_minutes: int = 15):
+        """Send an explicitly requested timed mode command."""
+        if mode not in ECONIQ_MODE_IDS or mode == "boost":
+            raise HomeAssistantError("Unsupported Econiq mode")
+        await self._async_publish_command(mode_payload(mode, duration_minutes))
+
+    async def _async_publish_command(self, payload: str):
         if not self.available or self._client is None:
             raise HomeAssistantError("Econiq is disconnected")
         try:
             await self._client.publish(
                 self.cache.prefix + "vent/uo",
-                boost_payload(cancel),
+                payload,
                 qos=0,
                 retain=False,
             )

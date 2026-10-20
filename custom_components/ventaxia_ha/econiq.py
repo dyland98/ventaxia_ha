@@ -14,6 +14,10 @@ CONF_PREFIX = "mqtt_prefix"
 ECONIQ = "econiq"
 KINETIC = "kinetic"
 
+# APK-reported SDK modes. OFF is intentionally excluded to avoid stopping
+# ventilation; non-Boost modes have not yet been validated on hardware.
+ECONIQ_MODE_IDS = {"low": 1, "normal": 2, "boost": 3, "purge": 4, "maximum": 5}
+
 
 class PskUnavailableError(RuntimeError):
     """The Python/OpenSSL runtime cannot provide TLS-PSK."""
@@ -167,4 +171,17 @@ def boost_payload(cancel: bool = False) -> str:
     """Only Boost is exposed. Cancellation still needs hardware validation."""
     return json.dumps(
         {"gtm": 3, "treq": "00:00:00" if cancel else "00:15:00"}, separators=(",", ":")
+    )
+
+
+def mode_payload(mode: str, duration_minutes: int = 15) -> str:
+    """Build a timed mode command; never expose OFF or persistent commands."""
+    if mode not in ECONIQ_MODE_IDS:
+        raise ValueError("Unsupported Econiq mode")
+    if isinstance(duration_minutes, bool) or not 1 <= duration_minutes <= 60:
+        raise ValueError("Mode duration must be between 1 and 60 minutes")
+    hours, minutes = divmod(duration_minutes, 60)
+    duration = f"{hours:02d}:{minutes:02d}:00"
+    return json.dumps(
+        {"gtm": ECONIQ_MODE_IDS[mode], "treq": duration}, separators=(",", ":")
     )
