@@ -40,7 +40,7 @@
       "unknown": "Se produjo un error inesperado. Por favor, revise los registros.",
       "psk_unavailable": "Este runtime de HA no ofrece TLS-PSK. Se requieren las API ssl.HAS_PSK y SSLContext.set_psk_client_callback, además del cifrado PSK-AES128-CBC-SHA de OpenSSL.",
       "invalid_psk_or_prefix": "Comprueba la PSK: hexadecimal no vacía, de longitud par y distinta de cero; usa una identidad válida y un prefijo sin + ni #.",
-      "no_econiq_metadata": "No se recibieron metadatos Econiq con este prefijo en 15 s. Comprueba el prefijo MQTT y la telemetría."
+      "no_econiq_metadata": "Conexión y suscripción MQTT completadas, pero no llegaron metadatos Econiq válidos (modelo y número de serie) con este prefijo en 30 s. Comprueba el prefijo MQTT y la telemetría del dispositivo."
     },
     "abort": {
       "already_configured": "This device is already configured."

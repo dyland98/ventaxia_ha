@@ -85,8 +85,9 @@ Add **Vent Axia** in Settings > Devices & Services and select **Sentinel Econiq*
 Enter its host, port (default 8883), PSK identity (default `zirconia`), private
 hexadecimal PSK and explicit MQTT prefix, optionally ending with `/`. The prefix
 is not the Wi-Fi SSID. No broker add-on, cloud account or bridge is needed.
-The connection check waits for Econiq model/serial metadata on this prefix;
-if no metadata arrives within 15 seconds, verify the prefix and device messages.
+The connection check establishes TLS/MQTT, subscribes to this prefix, then waits
+up to 30 seconds for Econiq model/serial metadata. If that metadata does not
+arrive, verify the prefix and device messages.
 
 The hexadecimal PSK is decoded to bytes, never encoded as the literal hex text.
 The key is masked in the form, stored in HA config entry storage and excluded

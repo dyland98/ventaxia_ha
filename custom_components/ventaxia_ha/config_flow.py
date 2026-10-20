@@ -109,16 +109,20 @@ async def validate_econiq(hass, data):
         create_tls_context, data[CONF_PSK_KEY], data[CONF_IDENTITY]
     )
     cache = EconiqCache(data[CONF_PREFIX])
-    async with asyncio.timeout(15):
-        async with create_client(
-            data, f"ha-econiq-check-{uuid.uuid4().hex[:12]}", context
-        ) as client:
-            await client.subscribe(cache.prefix + "#", qos=0)
+    async with create_client(
+        data, f"ha-econiq-check-{uuid.uuid4().hex[:12]}", context
+    ) as client:
+        subscription = await client.subscribe(cache.prefix + "#", qos=0)
+        if subscription and any(int(reason) >= 128 for reason in subscription):
+            raise CannotConnect("MQTT subscription was rejected")
+        # Keep connection and subscription outside this timeout so their errors
+        # cannot be mistaken for missing telemetry.
+        async with asyncio.timeout(30):
             async for message in client.messages:
                 cache.update(str(message.topic), bytes(message.payload))
                 if cache.valid_device:
                     return {"title": cache.metadata["mn"]}
-            raise CannotConnect
+        raise CannotConnect("MQTT connection ended before Econiq metadata arrived")
 
 
 class VentAxiaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):

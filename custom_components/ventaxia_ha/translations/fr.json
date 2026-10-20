@@ -40,7 +40,7 @@
       "unknown": "Erreur inattendue. Consultez les journaux.",
       "psk_unavailable": "Ce runtime HA ne fournit pas TLS-PSK. Python ≥ 3.13 et OpenSSL avec ssl.HAS_PSK et set_psk_client_callback sont requis.",
       "invalid_psk_or_prefix": "Vérifiez la PSK : hexadécimal de longueur paire, non vide, non nul ; l’identité doit être valide et le préfixe sans + ni #.",
-      "no_econiq_metadata": "Aucune métadonnée Econiq reçue sous ce préfixe en 15 s. Vérifiez le préfixe MQTT et la diffusion des données."
+      "no_econiq_metadata": "Connexion et abonnement MQTT réussis, mais aucune métadonnée Econiq valide (modèle et numéro de série) n’est arrivée sous ce préfixe en 30 s. Vérifiez le préfixe MQTT et la télémétrie de la VMC."
     },
     "abort": {
       "already_configured": "Cet appareil est déjà configuré."

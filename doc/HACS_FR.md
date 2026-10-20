@@ -131,7 +131,9 @@ restaurer le dossier précédent et son référencement HACS, puis redémarrer.
 9. La validation établit TLS 1.2 / `PSK-AES128-CBC-SHA`, MQTT 3.1.1, s’abonne
    au préfixe et attend des métadonnées Econiq avec numéro de série. Aucune
    publication de commande n’est nécessaire. Une erreur peut provenir du réseau,
-   de la PSK, du préfixe ou de l’absence de métadonnées dans le délai de 15 s.
+  de la PSK ou du réseau. Si TLS et l’abonnement MQTT réussissent mais que le
+  modèle et le numéro de série ne sont pas reçus sous 30 s, vérifier le préfixe
+  et la télémétrie publiée par la VMC.
 10. Vérifier le regroupement des capteurs et boutons sous un même appareil.
 
 Installation manuelle équivalente : arrêter HA, copier **le dossier complet**

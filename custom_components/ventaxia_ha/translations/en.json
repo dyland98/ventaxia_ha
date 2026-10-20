@@ -40,7 +40,7 @@
       "unknown": "Unexpected error occurred. Please check the logs.",
       "psk_unavailable": "This HA runtime has no TLS-PSK. Python ≥3.13 and OpenSSL with ssl.HAS_PSK and set_psk_client_callback are required.",
       "invalid_psk_or_prefix": "Check PSK: nonempty, even-length hexadecimal, nonzero; use a valid identity and a prefix without + or #.",
-      "no_econiq_metadata": "No Econiq metadata received under this prefix within 15 s. Check the MQTT prefix and telemetry."
+      "no_econiq_metadata": "Connected and subscribed, but no valid Econiq model/serial metadata arrived under this prefix within 30 s. Check the MQTT prefix and device telemetry."
     },
     "abort": {
       "already_configured": "This device is already configured."

@@ -9,7 +9,11 @@ from homeassistant import config_entries
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_component
 
-from custom_components.ventaxia_ha.config_flow import validate_econiq, validate_input
+from custom_components.ventaxia_ha.config_flow import (
+    CannotConnect,
+    validate_econiq,
+    validate_input,
+)
 from custom_components.ventaxia_ha.const import DOMAIN
 from custom_components.ventaxia_ha.econiq import PskUnavailableError
 
@@ -138,6 +142,33 @@ async def test_validation_receives_metadata_without_commands(
     ):
         assert await validate_econiq(hass, econiq_data) == {"title": "Econiq 300"}
     fake_client.publish.assert_not_awaited()
+    assert fake_client.closed
+
+
+async def test_validation_reports_timeout_only_after_successful_subscribe(
+    hass, econiq_data, fake_client
+):
+    fake_client.queue.put_nowait(TimeoutError("simulated metadata wait timeout"))
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.create_client",
+        return_value=fake_client,
+    ):
+        with pytest.raises(TimeoutError):
+            await validate_econiq(hass, econiq_data)
+    fake_client.subscribe.assert_awaited_once_with("TEST-UNIT/#", qos=0)
+    assert fake_client.closed
+
+
+async def test_validation_reports_rejected_subscription_as_connection_error(
+    hass, econiq_data, fake_client
+):
+    fake_client.subscribe.return_value = [128]
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.create_client",
+        return_value=fake_client,
+    ):
+        with pytest.raises(CannotConnect, match="subscription was rejected"):
+            await validate_econiq(hass, econiq_data)
     assert fake_client.closed
 
 
