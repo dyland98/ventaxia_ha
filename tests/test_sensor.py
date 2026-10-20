@@ -1,89 +1,110 @@
-# tests/test_sensor.py
+"""HA entry setup selects only the appropriate entities and unloads cleanly."""
+
+from unittest.mock import AsyncMock, patch
+
+from homeassistant.const import Platform
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.ventaxia_ha import async_setup_entry, async_unload_entry
+from custom_components.ventaxia_ha.button import async_setup_entry as setup_buttons
+from custom_components.ventaxia_ha.const import DOMAIN
+from custom_components.ventaxia_ha.econiq_entities import (
+    EconiqBoostButton,
+    EconiqSensor,
+)
+from custom_components.ventaxia_ha.sensor import async_setup_entry as setup_sensors
 
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
+async def test_econiq_platforms(hass, econiq_data, fake_client):
+    entry = MockConfigEntry(
+        domain=DOMAIN, data=econiq_data, unique_id="econiq:TEST-UNIT"
+    )
+    entry.add_to_hass(hass)
+    fake_client.metadata()
+    with patch(
+        "custom_components.ventaxia_ha.econiq_coordinator.create_client",
+        return_value=fake_client,
+    ), patch.object(
+        hass.config_entries, "async_forward_entry_setups", new=AsyncMock()
+    ) as forward:
+        assert await async_setup_entry(hass, entry)
+        forward.assert_awaited_once_with(entry, [Platform.SENSOR, Platform.BUTTON])
+        sensors = []
+        buttons = []
+        await setup_sensors(hass, entry, lambda entities: sensors.extend(entities))
+        await setup_buttons(hass, entry, lambda entities: buttons.extend(entities))
+        assert len(sensors) > 20 and all(isinstance(s, EconiqSensor) for s in sensors)
+        assert len(buttons) == 2 and all(
+            isinstance(b, EconiqBoostButton) for b in buttons
+        )
+        assert len({s.unique_id for s in sensors}) == len(sensors)
+        assert {s.device_info["identifiers"].pop() for s in sensors} == {
+            (DOMAIN, "econiq:TEST-UNIT")
+        }
+        with patch.object(
+            hass.config_entries, "async_unload_platforms", return_value=False
+        ):
+            assert not await async_unload_entry(hass, entry)
+            assert hass.data[DOMAIN][entry.entry_id].available
+        with patch.object(
+            hass.config_entries, "async_unload_platforms", return_value=True
+        ):
+            assert await async_unload_entry(hass, entry)
+        assert fake_client.closed
+        assert entry.entry_id not in hass.data[DOMAIN]
 
-from custom_components.ventaxia_ha.const import CONF_WIFI_DEVICE_ID, DOMAIN
-from tests.const import MOCK_CONFIG
 
-# `hass` and `setup_integration` fixtures are from tests/conftest.py
-# `mock_ventaxia_iot_components` fixture is also from tests/conftest.py
+async def test_old_entry_uses_kinetic(hass):
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"wifi_device_id": "legacy"}, unique_id="legacy"
+    )
+    entry.add_to_hass(hass)
+    coordinator = AsyncMock()
+    with patch(
+        "custom_components.ventaxia_ha.VentAxiaCoordinator", return_value=coordinator
+    ) as factory, patch.object(
+        hass.config_entries, "async_forward_entry_setups", new=AsyncMock()
+    ) as forward:
+        assert await async_setup_entry(hass, entry)
+        factory.assert_called_once_with(hass, entry)
+        forward.assert_awaited_once_with(
+            entry, [Platform.SENSOR, Platform.BUTTON, Platform.SELECT]
+        )
+    with patch.object(hass.config_entries, "async_unload_platforms", return_value=True):
+        assert await async_unload_entry(hass, entry)
+    coordinator.async_stop.assert_awaited_once()
 
 
-async def test_sensor_entities(
-    hass: HomeAssistant, setup_integration, mock_ventaxia_iot_components: dict
-):
-    """Test that sensor entities are created and have correct initial state."""
-    # The setup_integration fixture has loaded the component with mocked data.
+async def test_entities_registered_in_home_assistant(hass, econiq_data, fake_client):
+    """Exercise real HA platform setup, translation, push updates and cleanup."""
+    from homeassistant.helpers import entity_registry as er
+    from pytest_homeassistant_custom_component.common import mock_component
 
-    # Get the entity registry
-    entity_registry = er.async_get(hass)
-
-    # Access the mock device instance that holds the state
-    mock_device = mock_ventaxia_iot_components["device"]
-
-    # --- Test Temperature Sensor ---
-    temp_entity_id = "sensor.ventaxia_device_temperature"  # Adjust based on your entity_id generation
-    temp_state = hass.states.get(temp_entity_id)
-    assert temp_state is not None
-    # Assert state matches the mocked device's 'temp' property
-    assert float(temp_state.state) == mock_device.temp
-    assert temp_state.attributes.get("unit_of_measurement") == "°C"
-    assert temp_state.attributes.get("device_class") == "temperature"
-
-    # --- Test Humidity Sensor ---
-    humidity_entity_id = "sensor.ventaxia_device_humidity"
-    humidity_state = hass.states.get(humidity_entity_id)
-    assert humidity_state is not None
-    # Assert state matches the mocked device's 'rh' property
-    assert float(humidity_state.state) == mock_device.rh
-    assert humidity_state.attributes.get("unit_of_measurement") == "%"
-    assert humidity_state.attributes.get("device_class") == "humidity"
-
-    # --- Test Fan Speed Sensor (if applicable) ---
-    fan_speed_entity_id = "sensor.ventaxia_device_fan_speed"
-    fan_speed_state = hass.states.get(fan_speed_entity_id)
-    assert fan_speed_state is not None
-    assert int(fan_speed_state.state) == mock_device.fan_speed
-
-    # Ensure the underlying `get_state` (or equivalent) was called if your component polls
-    # This might implicitly be called by the `processor.process` which updates `device`
-
-    # --- Test State Update ---
-    # Change the mock device's properties to simulate a device update
-    mock_device.temp = 25.0
-    mock_device.rh = 70
-    mock_device.fan_speed = 4
-
-    # Now, simulate a message being processed that would update the device.
-    # In your __init__.py, you have `self._notify_update()` after `processor.process()`.
-    # To trigger an update in the test, we can directly call `_notify_update` on the coordinator
-    # or simulate the async message loop.
-    # For simplicity here, we'll directly update `device` and assert if the entities update based on polling.
-    # If your component uses a DataUpdateCoordinator, you would call `coordinator.async_update_listeners()`.
-    # For now, if sensors are polling, you might need to wait for next update cycle or trigger it manually.
-    # A basic way to trigger an update without waiting for a real timer:
-    coordinator = hass.data[DOMAIN].get(
-        "your_config_entry_id_here"
-    )  # Replace "your_config_entry_id_here"
-    # with the actual entry_id or dynamically get it.
-    if coordinator:
-        coordinator._notify_update()  # Directly call the notification method
-    await hass.async_block_till_done()  # Allow Home Assistant to process state changes
-
-    # Re-assert sensor states after the mock update
-    temp_state_after_update = hass.states.get(temp_entity_id)
-    assert float(temp_state_after_update.state) == 25.0
-
-    humidity_state_after_update = hass.states.get(humidity_entity_id)
-    assert float(humidity_state_after_update.state) == 70.0
-
-    fan_speed_state_after_update = hass.states.get(fan_speed_entity_id)
-    assert int(fan_speed_state_after_update.state) == 4
-
-    # Test entity unique ID (good practice)
-    entry = entity_registry.async_get(temp_entity_id)
-    assert (
-        entry.unique_id == f"{MOCK_CONFIG[CONF_WIFI_DEVICE_ID]}_temperature"
-    )  # Adjust based on your unique_id format
+    mock_component(hass, "frontend")
+    entry = MockConfigEntry(
+        domain=DOMAIN, data=econiq_data, unique_id="econiq:TEST-UNIT"
+    )
+    entry.add_to_hass(hass)
+    fake_client.metadata()
+    fake_client.feed("io/t1", b"9.8")
+    with patch(
+        "custom_components.ventaxia_ha.econiq_coordinator.create_client",
+        return_value=fake_client,
+    ), patch("custom_components.ventaxia_ha.async_setup", return_value=True):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        registry = er.async_get(hass)
+        entity_id = registry.async_get_entity_id(
+            "sensor", DOMAIN, "econiq:TEST-UNIT_t1"
+        )
+        assert entity_id
+        assert hass.states.get(entity_id).state == "9.8"
+        assert hass.states.get(entity_id).attributes["unit_of_measurement"] == "°C"
+        fake_client.feed("io/t1", b"nan")
+        await hass.async_block_till_done()
+        assert hass.states.get(entity_id).state == "unknown"
+        coordinator = hass.data[DOMAIN][entry.entry_id]
+        assert len(coordinator._callbacks) > 20
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        assert not coordinator._callbacks
+        assert fake_client.closed

@@ -1,12 +1,12 @@
 # File: ventaxia_ha/__init__.py
 """The VentAxia HA integration."""
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from typing import Callable, Dict, Optional
 
-import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.websocket_api.connection import ActiveConnection
 from homeassistant.config_entries import ConfigEntry
@@ -17,7 +17,7 @@ from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
 )
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers.device_registry import DeviceInfo
 from ventaxiaiot import (
     AsyncNativePskClient,
@@ -25,6 +25,7 @@ from ventaxiaiot import (
     VentClientCommands,
     VentMessageProcessor,
 )
+import voluptuous as vol
 
 from .const import (
     AIRFLOW_MODES,
@@ -43,6 +44,8 @@ from .const import (
     VALID_DURATIONS,
     VALID_MODES,
 )
+from .econiq import CONF_DEVICE_TYPE, ECONIQ, PskUnavailableError
+from .econiq_coordinator import EconiqCoordinator
 from .frontend import JSModuleRegistration
 from .runtime_timer import VentAxiaRuntimeTimer
 
@@ -335,6 +338,25 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up VentAxia from a config entry."""
+    if entry.data.get(CONF_DEVICE_TYPE) == ECONIQ:
+        coordinator = EconiqCoordinator(hass, entry)
+        try:
+            await coordinator.async_start()
+        except PskUnavailableError as err:
+            raise ConfigEntryError(str(err)) from err
+        except (TimeoutError, OSError) as err:
+            raise ConfigEntryNotReady("Econiq MQTT connection unavailable") from err
+        hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+        try:
+            await hass.config_entries.async_forward_entry_setups(
+                entry, [Platform.SENSOR, Platform.BUTTON]
+            )
+        except BaseException:
+            await coordinator.async_stop()
+            hass.data[DOMAIN].pop(entry.entry_id, None)
+            raise
+        return True
+
     coordinator = VentAxiaCoordinator(hass, entry)
     try:
         await coordinator.async_start()
@@ -453,6 +475,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload VentAxia config entry."""
-    coordinator: VentAxiaCoordinator = hass.data[DOMAIN].pop(entry.entry_id)
+    platforms = (
+        [Platform.SENSOR, Platform.BUTTON]
+        if entry.data.get(CONF_DEVICE_TYPE) == ECONIQ
+        else PLATFORMS
+    )
+    if not await hass.config_entries.async_unload_platforms(entry, platforms):
+        return False
+    coordinator = hass.data[DOMAIN].pop(entry.entry_id)
     await coordinator.async_stop()
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    return True

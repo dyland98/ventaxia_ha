@@ -1,18 +1,23 @@
 # File: ventaxia_ha/config_flow.py
 """Config flow for VentAxia IoT integration."""
+
 from __future__ import annotations
 
+import asyncio
 import logging
 import ssl
 from typing import Any
+import uuid
 
-import voluptuous as vol
+import aiomqtt
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import selector
 from ventaxiaiot import AsyncNativePskClient
+import voluptuous as vol
 
 from .const import (
     CONF_IDENTITY,
@@ -20,6 +25,18 @@ from .const import (
     CONF_WIFI_DEVICE_ID,
     DEFAULT_PORT,
     DOMAIN,
+)
+from .econiq import (
+    CONF_DEVICE_TYPE,
+    CONF_PREFIX,
+    ECONIQ,
+    KINETIC,
+    EconiqCache,
+    PskUnavailableError,
+    create_client,
+    create_tls_context,
+    normalize_prefix,
+    parse_psk,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,7 +64,6 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     try:
         await client.connect(timeout=10.0)
-        await client.close()
     except ssl.SSLError as err:
         if "application data after close notify" in str(err):
             _LOGGER.error(
@@ -66,7 +82,43 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         _LOGGER.error("Cannot connect to VentAxia device: %s", err)
         raise
 
+    finally:
+        await client.close()
+
     return {"title": f"VentAxia Device ({data[CONF_HOST]})"}
+
+
+ECONIQ_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_HOST): str,
+        vol.Required(CONF_PORT, default=8883): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=65535)
+        ),
+        vol.Required(CONF_IDENTITY, default="zirconia"): str,
+        vol.Required(CONF_PSK_KEY): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+        ),
+        vol.Required(CONF_PREFIX): str,
+    }
+)
+
+
+async def validate_econiq(hass, data):
+    """Validate TLS, CONNACK, SUBACK and metadata without publishing commands."""
+    context = await hass.async_add_executor_job(
+        create_tls_context, data[CONF_PSK_KEY], data[CONF_IDENTITY]
+    )
+    cache = EconiqCache(data[CONF_PREFIX])
+    async with asyncio.timeout(15):
+        async with create_client(
+            data, f"ha-econiq-check-{uuid.uuid4().hex[:12]}", context
+        ) as client:
+            await client.subscribe(cache.prefix + "#", qos=0)
+            async for message in client.messages:
+                cache.update(str(message.topic), bytes(message.payload))
+                if cache.valid_device:
+                    return {"title": cache.metadata["mn"]}
+            raise CannotConnect
 
 
 class VentAxiaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -74,7 +126,45 @@ class VentAxiaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(
+    async def async_step_user(self, user_input=None) -> ConfigFlowResult:
+        return self.async_show_menu(step_id="user", menu_options=[KINETIC, ECONIQ])
+
+    async def async_step_econiq(self, user_input=None) -> ConfigFlowResult:
+        errors = {}
+        if user_input is not None:
+            data = dict(user_input)
+            data[CONF_DEVICE_TYPE] = ECONIQ
+            try:
+                parse_psk(data[CONF_PSK_KEY])
+                data[CONF_PREFIX] = normalize_prefix(data[CONF_PREFIX])
+                if (
+                    not data[CONF_IDENTITY]
+                    or "\x00" in data[CONF_IDENTITY]
+                    or len(data[CONF_IDENTITY].encode()) > 256
+                ):
+                    raise ValueError("Invalid identity")
+            except ValueError:
+                errors["base"] = "invalid_psk_or_prefix"
+            else:
+                await self.async_set_unique_id(f"econiq:{data[CONF_PREFIX]}")
+                self._abort_if_unique_id_configured()
+                try:
+                    info = await validate_econiq(self.hass, data)
+                except PskUnavailableError:
+                    errors["base"] = "psk_unavailable"
+                except ssl.SSLError:
+                    errors["base"] = "auth"
+                except TimeoutError:
+                    errors["base"] = "no_econiq_metadata"
+                except (aiomqtt.MqttError, OSError, CannotConnect):
+                    errors["base"] = "cannot_connect"
+                else:
+                    return self.async_create_entry(title=info["title"], data=data)
+        return self.async_show_form(
+            step_id="econiq", data_schema=ECONIQ_SCHEMA, errors=errors
+        )
+
+    async def async_step_kinetic(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
@@ -98,7 +188,7 @@ class VentAxiaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title=info["title"], data=user_input)
 
         return self.async_show_form(
-            step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
+            step_id="kinetic", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
 
 
