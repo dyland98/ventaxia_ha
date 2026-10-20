@@ -26,15 +26,6 @@ EXTRA_TEXT_TOPICS = {
     "mdet/svctmr/last",
     "mdet/rtc",
 }
-READ_TOPICS = tuple(
-    sorted(
-        EXTRA_NUMERIC_TOPICS
-        | EXTRA_JSON_TOPICS
-        | EXTRA_TEXT_TOPICS
-        | {"mdet/name", "mdet/moddet", "mdet/wifi/sta"}
-    )
-)
-
 CHANNEL_RE = re.compile(
     r"(zone|sn)/([1-9][0-9]?)/(t|rh|co2|voc|bat|ss|sta|dp|sw|conf|info)\Z"
 )

@@ -1,5 +1,6 @@
 """Read-only APK telemetry, channel discovery and exact mode cancellation."""
 
+import asyncio
 from datetime import date
 import json
 from unittest.mock import AsyncMock, patch
@@ -215,15 +216,7 @@ async def test_actual_ha_discovery_restart_and_unload(hass, econiq_data, fake_cl
         assert hass.states.get(dynamic).state == "unavailable"
         c = hass.data[DOMAIN][entry.entry_id]
         fake_client.publish.assert_not_awaited()
-        # Explicit startup subscriptions remain read-only, including reconnects.
-        subscribed = [
-            topic for topic, qos in fake_client.subscribe.await_args_list[1].args[0]
-        ]
-        assert "TEST-UNIT/vent/sbs" in subscribed
-        assert all(
-            not topic.endswith(("/wr", "/reset", "/restdef", "/remove"))
-            for topic in subscribed
-        )
+        fake_client.subscribe.assert_awaited_once_with("TEST-UNIT/#", qos=0)
         assert await hass.config_entries.async_unload(entry.entry_id)
         assert not c._callbacks
         fake_client.feed("zone/3/t", b"22.5")
@@ -303,23 +296,38 @@ async def test_duration_sensors_update_from_device_messages(hass, econiq_data):
     assert sensors["override_remaining"].native_value == 90
 
 
-async def test_optional_subscribe_failure_keeps_base_connection(
+async def test_broker_that_drops_additional_subscriptions_stays_connected(
     hass, econiq_data, fake_client
 ):
     import aiomqtt
 
     c = coordinator(hass, econiq_data)
-    fake_client.subscribe.side_effect = [
-        None,
-        aiomqtt.MqttError("optional read rejected"),
-    ]
+    count = 0
+
+    async def strict_subscribe(topic, **kwargs):
+        nonlocal count
+        count += 1
+        if not isinstance(topic, str) or count > 1:
+            # Model the actual failure: refusal also invalidates the receive loop.
+            fake_client.queue.put_nowait(aiomqtt.MqttError("broker disconnected"))
+            raise aiomqtt.MqttError("additional subscriptions close the connection")
+        return [0]
+
+    fake_client.subscribe.side_effect = strict_subscribe
     fake_client.feed("io/t1", b"10.0")
+    fake_client.feed("vent/sbs", b'{"am":1,"op":75}')
     with patch(
         "custom_components.ventaxia_ha.econiq_coordinator.create_client",
         return_value=fake_client,
     ):
-        await c.async_start()
-        assert c.available and c.cache.values["io/t1"] == 10
-        fake_client.publish.assert_not_awaited()
-        await c.async_stop()
+        try:
+            async with asyncio.timeout(1):
+                await c.async_start()
+                await hass.async_block_till_done()
+            assert c.available and c.cache.values["io/t1"] == 10
+            assert c.cache.values["vent/sbs"]["op"] == 75
+            assert count == 1
+            fake_client.publish.assert_not_awaited()
+        finally:
+            await c.async_stop()
         assert fake_client.closed

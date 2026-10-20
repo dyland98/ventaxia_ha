@@ -99,10 +99,17 @@ la mise à jour d’une traduction ne renomme pas automatiquement un identifiant
 
 ## Fonctions supplémentaires implémentées
 
-Le backend lit maintenant les topics ci-dessous. Les abonnements explicites de
-lecture complètent l’abonnement au préfixe ; aucune commande de réglage ne part
-au démarrage ou à la reconnexion. Si ces abonnements supplémentaires échouent,
-la connexion de base continue de recevoir ses données push.
+Le backend traite les topics ci-dessous via **un seul abonnement `<préfixe>/#`**,
+celui validé sur l’appareil. Le paquet d’abonnement supplémentaire à plusieurs
+topics, introduit dans 0.3.0.1, a été retiré du correctif local : les messages reçus
+montrent que son échec est suivi d’une déconnexion. Intercepter l’erreur ne suffit
+pas à maintenir une session que le serveur a déjà fermée. La cause précise côté
+firmware n’est pas confirmée sans un nouveau test sur l’appareil.
+
+Les parseurs, entités et découvertes restent actifs pour toutes les données que
+la VMC publie sous le préfixe. Les champs non publiés peuvent rester inconnus ;
+aucun abonnement supplémentaire ou commande de réglage n’est envoyé pour les
+forcer.
 
 Une fonction implémentée n’est pas nécessairement publiée par chaque firmware :
 les données non reçues restent inconnues, sans valeur par défaut inventée.

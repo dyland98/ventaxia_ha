@@ -22,7 +22,6 @@ from .econiq import (
     create_tls_context,
     mode_payload,
 )
-from .econiq_topics import READ_TOPICS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -89,19 +88,9 @@ class EconiqCoordinator:
                     self.data, f"ha-econiq-{self.entry.entry_id}", self._context
                 ) as client:
                     await client.subscribe(self.cache.prefix + "#", qos=0)
-                    # Some firmware responds to explicit read subscriptions only.
-                    # These are SUBSCRIBE packets, never writes or resets.
-                    try:
-                        await client.subscribe(
-                            [(self.cache.prefix + topic, 0) for topic in READ_TOPICS],
-                            timeout=5,
-                        )
-                    except aiomqtt.MqttError:
-                        # Optional telemetry must not prevent the working base
-                        # integration from receiving its wildcard push updates.
-                        _LOGGER.warning(
-                            "Econiq additional read subscriptions unavailable; using push telemetry"
-                        )
+                    # Keep the single wildcard subscription validated on Econiq.
+                    # Additional/multi-topic SUBSCRIBE packets can close the broker
+                    # session; catching that error cannot restore the dead socket.
                     self._client = client
                     # Require fresh, allowlisted telemetry after every connection.
                     self.cache.values.clear()
@@ -117,9 +106,16 @@ class EconiqCoordinator:
                                 self._ready.set()
                                 delay = 2
                             self._notify_update()
-            except aiomqtt.MqttError:
-                # Do not log connection exceptions or credentials.
-                _LOGGER.warning("Econiq MQTT connection unavailable; retrying")
+            except aiomqtt.MqttError as err:
+                # Keep diagnostics useful without logging exception text, PSK,
+                # identity or telemetry. Return codes are optional in aiomqtt.
+                code = getattr(err, "rc", None)
+                code = getattr(code, "value", code)
+                _LOGGER.warning(
+                    "Econiq MQTT connection unavailable (%s, code=%s); retrying",
+                    type(err).__name__,
+                    code if isinstance(code, int) else "unknown",
+                )
             finally:
                 self._client = None
                 self.available = False

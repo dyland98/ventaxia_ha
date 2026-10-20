@@ -154,8 +154,7 @@ async def test_reconnect_clean_shutdown_and_commands(hass, econiq_data, fake_cli
     ) as factory:
         await coordinator.async_start()
         assert coordinator.available
-        fake_client.subscribe.assert_any_await("TEST-UNIT/#", qos=0)
-        assert fake_client.subscribe.await_count == 2
+        fake_client.subscribe.assert_awaited_once_with("TEST-UNIT/#", qos=0)
         fake_client.publish.assert_not_awaited()
         await coordinator.async_boost()
         fake_client.publish.assert_awaited_with(
@@ -186,6 +185,11 @@ async def test_reconnect_clean_shutdown_and_commands(hass, econiq_data, fake_cli
                 await asyncio.sleep(0.01)
         assert factory.call_args_list[0].args[1] == factory.call_args_list[1].args[1]
         assert fake_client.publish.await_count == 6  # No writes on reconnect.
+        assert fake_client.subscribe.await_count == 2
+        assert all(
+            call.args == ("TEST-UNIT/#",)
+            for call in fake_client.subscribe.await_args_list
+        )
         await coordinator.async_stop()
         assert (
             fake_client.closed

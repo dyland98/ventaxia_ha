@@ -1,3 +1,21 @@
+# Correctif des abonnements MQTT — 0.3.0.2
+
+Les journaux utilisateur de 0.3.0.1 montrent un échec de l’abonnement multiple,
+suivi immédiatement d’une déconnexion. Le correctif restaure l’unique abonnement
+`<préfixe>/#` validé auparavant. Il ne réessaie pas d’abonnements supplémentaires,
+y compris après reconnexion. Les entités et parseurs restent disponibles pour
+les données effectivement publiées sous le préfixe.
+
+Le mécanisme précédent interceptait l’erreur mais ne pouvait pas rétablir une
+session déjà fermée. Le nouveau test simule cette fermeture lors d’une seconde
+souscription ; il vérifie aussi la réception des données de base et du bypass.
+
+**123 tests passent**, avec transport simulé et réseau bloqué. Style et cohérence
+du packaging vérifiés. Aucune commande réelle n’a été envoyée à la VMC. Le
+correctif doit encore être installé via HACS et confirmé sur cet appareil.
+
+---
+
 # Validation des fonctions complémentaires — 2026-10-20
 
 Implémentation sur le `main` local du fork. **123 tests automatisés passent**

@@ -1,20 +1,14 @@
-# 0.3.0.1
+# 0.3.0.2
 
-Cette version complète le support local de la Vent-Axia Sentinel Econiq 300 et conserve le backend Sentinel Kinetic Advance S.
+Corrige la séquence de reconnexions MQTT observée avec la Sentinel Econiq après la mise à jour 0.3.0.1.
 
-- Choix du mode de dérogation et de sa durée, avec application explicite ; annulation du mode sélectionné.
-- Modes Réduit, Normal, Boost, Purge et Maximum ; durées de 15 minutes à 8 heures.
-- Libellés français/anglais lisibles pour les températures, moteurs, états et alertes W-12/W-13.
-- Débits mesurés en L/s et durées moteur en heures.
-- Lecture des profils, compteur total, types de filtres, intervalles, dates et prochaines échéances de maintenance.
-- Diagnostics bypass été et protection antigel en lecture seule.
-- Découverte des zones et sondes publiées, avec identifiants stables et prise en compte des listes actives.
-- Durée restante basée sur l’horloge de la VMC ; aucune commande au démarrage ou à la reconnexion.
+- Rétablit l’unique abonnement `<préfixe>/#`, validé précédemment sur l’appareil.
+- Supprime le paquet d’abonnement supplémentaire à plusieurs topics : ses erreurs étaient suivies d’une déconnexion que le repli ne pouvait pas réparer.
+- Conserve les nouvelles entités, les contrôles et les parseurs pour les données effectivement publiées par la VMC. Les topics non publiés restent inconnus.
+- Ajoute le type d’erreur et le code MQTT, lorsqu’il est disponible, aux journaux de reconnexion sans exposer la PSK.
 
-Le domaine reste `ventaxia_ha` : conserver l’entrée HA existante et redémarrer Home Assistant après la mise à jour. Ne pas installer simultanément l’intégration d’origine et le fork dans le même dossier.
+Validation : 123 tests automatisés passent, dont un scénario simulant un serveur qui ferme la session lors d’un abonnement supplémentaire. Le correctif reste à confirmer sur la VMC réelle ; l’installation HACS n’est pas validée par ces tests.
 
-Validation : 123 tests automatisés avec transport simulé. L’intégration de base fonctionne selon le retour utilisateur ; les nouveaux contrôles et topics restent à vérifier sur l’appareil. Une publication GitHub ne constitue pas une validation réelle de l’installation ou de la mise à jour HACS.
+Installer la mise à jour du fork dans HACS puis redémarrer Home Assistant. Conserver l’entrée d’intégration et sa configuration existantes. Aucune commande de ventilation ni remise à zéro n’est envoyée au démarrage.
 
-Les compteurs de filtres/entretien restent en lecture seule. Aucun reset, calibration ou contrôle de firmware n’est exposé.
-
-Instructions : [guide HACS](doc/HACS_FR.md) et [fonctions Econiq](doc/ECONIQ_APK.md).
+La release 0.3.0.1 reste disponible ; son tag n’a pas été modifié.
