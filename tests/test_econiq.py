@@ -16,7 +16,6 @@ from custom_components.ventaxia_ha.econiq import (
     ECONIQ_MODE_IDS,
     EconiqCache,
     PskUnavailableError,
-    boost_payload,
     create_client,
     create_tls_context,
     mode_payload,
@@ -26,8 +25,6 @@ from custom_components.ventaxia_ha.econiq import (
 from custom_components.ventaxia_ha.econiq_coordinator import EconiqCoordinator
 from custom_components.ventaxia_ha.econiq_entities import (
     SENSORS,
-    EconiqBoostButton,
-    EconiqModeButton,
     EconiqSensor,
 )
 
@@ -156,11 +153,11 @@ async def test_reconnect_clean_shutdown_and_commands(hass, econiq_data, fake_cli
         assert coordinator.available
         fake_client.subscribe.assert_awaited_once_with("TEST-UNIT/#", qos=0)
         fake_client.publish.assert_not_awaited()
-        await coordinator.async_boost()
+        await coordinator.async_set_mode("boost", 15)
         fake_client.publish.assert_awaited_with(
             "TEST-UNIT/vent/uo", '{"gtm":3,"treq":"00:15:00"}', qos=0, retain=False
         )
-        await coordinator.async_boost(cancel=True)
+        await coordinator.async_cancel_selected_override()
         fake_client.publish.assert_awaited_with(
             "TEST-UNIT/vent/uo", '{"gtm":3,"treq":"00:00:00"}', qos=0, retain=False
         )
@@ -177,7 +174,7 @@ async def test_reconnect_clean_shutdown_and_commands(hass, econiq_data, fake_cli
         await asyncio.sleep(0)
         assert not coordinator.available
         with pytest.raises(HomeAssistantError):
-            await coordinator.async_boost()
+            await coordinator.async_set_mode("boost", 15)
         # Wait through the first real backoff to verify a new session and fresh metadata.
         fake_client.metadata()
         async with asyncio.timeout(4):
@@ -242,15 +239,6 @@ async def test_entity_unknown_and_raw_values(hass, econiq_data):
     assert warnings.extra_state_attributes["raw_value"] == 6144
     assert warnings.extra_state_attributes["active_bits"] == [11, 12]
     assert warnings.native_unit_of_measurement is None
-    assert (
-        EconiqBoostButton(coordinator, cancel=True).entity_registry_enabled_default
-        is False
-    )
-    for mode in EconiqModeButton.MODES:
-        assert (
-            EconiqModeButton(coordinator, mode).entity_registry_enabled_default is False
-        )
-    assert json.loads(boost_payload()) == {"gtm": 3, "treq": "00:15:00"}
     coordinator.cache.update(
         "TEST-UNIT/mdet/wifi/sta", b'{"rssi":-72,"ssid":"private"}'
     )

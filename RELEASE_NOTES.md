@@ -1,14 +1,12 @@
-# 0.3.0.2
+# 0.3.1
 
-Corrige la séquence de reconnexions MQTT observée avec la Sentinel Econiq après la mise à jour 0.3.0.1.
+Simplifie les commandes de la Sentinel Econiq.
 
-- Rétablit l’unique abonnement `<préfixe>/#`, validé précédemment sur l’appareil.
-- Supprime le paquet d’abonnement supplémentaire à plusieurs topics : ses erreurs étaient suivies d’une déconnexion que le repli ne pouvait pas réparer.
-- Conserve les nouvelles entités, les contrôles et les parseurs pour les données effectivement publiées par la VMC. Les topics non publiés restent inconnus.
-- Ajoute le type d’erreur et le code MQTT, lorsqu’il est disponible, aux journaux de reconnexion sans exposer la PSK.
+- Supprime Boost 15 minutes, Cancel Boost et les quatre boutons de configuration Low/Normal/Purge/Maximum 15 min.
+- Retire automatiquement leurs six entrées du registre Home Assistant, y compris les boutons désactivés.
+- Renomme le bouton « Annuler la dérogation sélectionnée » sans « à valider », en conservant son identifiant.
+- Conserve les listes de mode et de durée, le bouton Appliquer et l’unique abonnement MQTT corrigé en 0.3.0.2.
 
-Validation : 123 tests automatisés passent, dont un scénario simulant un serveur qui ferme la session lors d’un abonnement supplémentaire. Le correctif reste à confirmer sur la VMC réelle ; l’installation HACS n’est pas validée par ces tests.
+Mettre à jour depuis HACS puis redémarrer Home Assistant. Adapter les automatisations qui utilisaient les boutons supprimés. Aucune commande n’est envoyée au démarrage ; les compteurs restent en lecture seule.
 
-Installer la mise à jour du fork dans HACS puis redémarrer Home Assistant. Conserver l’entrée d’intégration et sa configuration existantes. Aucune commande de ventilation ni remise à zéro n’est envoyée au démarrage.
-
-La release 0.3.0.1 reste disponible ; son tag n’a pas été modifié.
+Validation : 123 tests automatisés passent, ainsi que les contrôles locaux de style et de publication. L’installation HACS et l’annulation sur la VMC réelle ne sont pas validées par ces tests.

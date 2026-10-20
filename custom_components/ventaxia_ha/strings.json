@@ -391,29 +391,11 @@
       }
     },
     "button": {
-      "boost_15": {
-        "name": "Boost 15 minutes"
-      },
-      "cancel_boost": {
-        "name": "Cancel Boost (to validate)"
-      },
-      "low_15_unverified": {
-        "name": "Low mode 15 min (to validate)"
-      },
-      "normal_15_unverified": {
-        "name": "Normal mode 15 min (to validate)"
-      },
-      "purge_15_unverified": {
-        "name": "Purge mode 15 min (to validate)"
-      },
-      "maximum_15_unverified": {
-        "name": "Maximum mode 15 min (to validate)"
-      },
       "apply_override": {
         "name": "Apply override"
       },
       "cancel_selected_override": {
-        "name": "Cancel selected override (to validate)"
+        "name": "Cancel selected override"
       }
     },
     "select": {

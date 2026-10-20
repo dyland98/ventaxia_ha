@@ -34,12 +34,10 @@ permet pas de confirmer `ps = 5`. Le sélecteur indique ce qu’on souhaite appl
 le capteur d’état indique exclusivement ce que la VMC publie. Une commande envoyée
 ne remplace jamais les valeurs du cache de télémétrie.
 
-Le raccourci Boost 15 minutes et les anciens boutons restent disponibles avec
-leurs identifiants existants. Le raccourci Boost reste fixé à 15 minutes et ne
-reprend pas la durée du sélecteur. Les anciens boutons de modes à durée fixe sont
-conservés pour les automatisations existantes ; ils ne constituent pas le nouveau
-parcours recommandé. Le bouton Annuler Boost reste une commande à vérifier si
-l’utilisateur ne l’a pas encore testée.
+Depuis la version 0.3.1, les six anciens boutons Boost/à durée fixe sont supprimés,
+y compris leurs entrées de registre. Utiliser les listes de mode et de durée puis
+Appliquer, ou Annuler la dérogation sélectionnée, dont l’identifiant est conservé.
+Adapter les automatisations qui utilisaient les boutons supprimés.
 
 Les listes sont des entités HA `select`, utilisables dans une carte Entités et
 avec `select.select_option`. Le bouton s’utilise avec `button.press`. Cette
@@ -116,7 +114,7 @@ les données non reçues restent inconnues, sans valeur par défaut inventée.
 
 | Fonction / topics | Comportement ajouté |
 | --- | --- |
-| Annulation `vent/uo` | **Annuler la dérogation sélectionnée (à valider)** utilise le mode choisi et `treq = 00:00:00`, y compris Maximum ; aucun changement d’état optimiste |
+| Annulation `vent/uo` | **Annuler la dérogation sélectionnée** utilise le mode choisi et `treq = 00:00:00`, y compris Maximum ; aucun changement d’état optimiste |
 | Profils `vent/pf1` à `vent/pf4` | Noms et consignes reçus, quatre capteurs de profil ; noms également accessibles dans les attributs du sélecteur et du mode courant |
 | `mdet/runt` | Durée totale en heures, valeur brute conservée |
 | Filtres `vent/filtertmr/int`, `vent/filtertmr/last`, `vent/filter1/typ`, `vent/filter2/typ` | Intervalle en mois, date du dernier changement, prochaine échéance, types de filtres |

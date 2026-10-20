@@ -9,8 +9,6 @@ from custom_components.ventaxia_ha import async_setup_entry, async_unload_entry
 from custom_components.ventaxia_ha.button import async_setup_entry as setup_buttons
 from custom_components.ventaxia_ha.const import DOMAIN
 from custom_components.ventaxia_ha.econiq_entities import (
-    EconiqBoostButton,
-    EconiqModeButton,
     EconiqSensor,
 )
 from custom_components.ventaxia_ha.sensor import async_setup_entry as setup_sensors
@@ -38,9 +36,10 @@ async def test_econiq_platforms(hass, econiq_data, fake_client):
         await setup_sensors(hass, entry, lambda entities: sensors.extend(entities))
         await setup_buttons(hass, entry, lambda entities: buttons.extend(entities))
         assert len(sensors) > 20 and all(isinstance(s, EconiqSensor) for s in sensors)
-        assert len(buttons) == 8
-        assert sum(isinstance(button, EconiqBoostButton) for button in buttons) == 2
-        assert sum(isinstance(button, EconiqModeButton) for button in buttons) == 4
+        assert {button.unique_id for button in buttons} == {
+            "econiq:TEST-UNIT_apply_override",
+            "econiq:TEST-UNIT_cancel_selected_override",
+        }
         assert len({s.unique_id for s in sensors}) == len(sensors)
         assert {s.device_info["identifiers"].pop() for s in sensors} == {
             (DOMAIN, "econiq:TEST-UNIT")
@@ -89,6 +88,48 @@ async def test_entities_registered_in_home_assistant(hass, econiq_data, fake_cli
         domain=DOMAIN, data=econiq_data, unique_id="econiq:TEST-UNIT"
     )
     entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    retired = []
+    for key in (
+        "boost_15",
+        "cancel_boost",
+        "low_15_unverified",
+        "normal_15_unverified",
+        "purge_15_unverified",
+        "maximum_15_unverified",
+    ):
+        retired.append(
+            registry.async_get_or_create(
+                "button",
+                DOMAIN,
+                f"{entry.unique_id}_{key}",
+                config_entry=entry,
+                disabled_by=er.RegistryEntryDisabler.INTEGRATION,
+            ).entity_id
+        )
+    cancel = registry.async_get_or_create(
+        "button",
+        DOMAIN,
+        f"{entry.unique_id}_cancel_selected_override",
+        config_entry=entry,
+        suggested_object_id="my_existing_cancel",
+    )
+    unrelated = registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        f"{entry.unique_id}_boost_15",
+        config_entry=entry,
+    )
+    other_entry = MockConfigEntry(
+        domain=DOMAIN, data=econiq_data, unique_id="econiq:OTHER"
+    )
+    other_entry.add_to_hass(hass)
+    other = registry.async_get_or_create(
+        "button",
+        DOMAIN,
+        "econiq:OTHER_boost_15",
+        config_entry=other_entry,
+    )
     fake_client.metadata()
     fake_client.feed("io/t1", b"9.8")
     with patch(
@@ -98,6 +139,21 @@ async def test_entities_registered_in_home_assistant(hass, econiq_data, fake_cli
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
         registry = er.async_get(hass)
+        assert all(registry.async_get(entity_id) is None for entity_id in retired)
+        assert registry.async_get(unrelated.entity_id)
+        assert registry.async_get(other.entity_id)
+        assert (
+            registry.async_get_entity_id(
+                "button", DOMAIN, f"{entry.unique_id}_cancel_selected_override"
+            )
+            == cancel.entity_id
+        )
+        assert (
+            hass.states.get(cancel.entity_id)
+            .attributes["friendly_name"]
+            .endswith("Cancel selected override")
+        )
+        fake_client.publish.assert_not_awaited()
         entity_id = registry.async_get_entity_id(
             "sensor", DOMAIN, "econiq:TEST-UNIT_t1"
         )

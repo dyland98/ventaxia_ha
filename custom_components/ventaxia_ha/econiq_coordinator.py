@@ -16,7 +16,6 @@ from .econiq import (
     ECONIQ_MODE_IDS,
     ECONIQ_SELECT_MODES,
     EconiqCache,
-    boost_payload,
     cancel_payload,
     create_client,
     create_tls_context,
@@ -122,9 +121,6 @@ class EconiqCoordinator:
                 self._notify_update()
             await asyncio.sleep(delay)
             delay = min(delay * 2, 60)
-
-    async def async_boost(self, cancel=False):
-        await self._async_publish_command(boost_payload(cancel))
 
     async def async_set_mode(self, mode: str, duration_minutes: int = 15):
         """Send an explicitly requested timed mode command."""

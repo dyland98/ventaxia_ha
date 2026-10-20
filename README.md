@@ -42,7 +42,7 @@ entries use `econiq:<mqtt_prefix>` and cannot invoke the Kinetic controls.
 **Home Assistant 2026.10.0 or newer** is the declared, conservatively tested baseline.
 Native TLS-PSK support is checked in the HA Python/OpenSSL runtime. Local automated
 tests do not prove installation via HACS or operation on a physical VMC.
-Release **`0.3.0.2`**: see [release notes](RELEASE_NOTES.md) and [GitHub releases][releases].
+Release **`0.3.1`**: see [release notes](RELEASE_NOTES.md) and [GitHub releases][releases].
 
 ### Replacing the original installation
 
@@ -111,11 +111,11 @@ The user's app confirmed W-12 (filter cleaning/replacement overdue) and W-13
 individual maintenance indicators. Other bits remain explicitly unidentified.
 Absent/nonfinite data remain unknown; disconnects make entities unavailable.
 
-The fixed **Boost 15 minutes** shortcut remains available. **Cancel Boost (to
-validate)** stays disabled by default and sends the APK-derived
-`{"gtm":3,"treq":"00:00:00"}` when explicitly enabled and pressed. Existing fixed
-15-minute mode buttons retain their identifiers for compatibility. No commands
-are sent automatically on startup, restored selections or reconnect.
+Version 0.3.1 removes the six old fixed-duration/Boost buttons and cleans up their
+entity registry entries on startup. Use the mode and duration selectors followed
+by **Apply override**, or **Cancel selected override** (its identifier is unchanged).
+Update automations that used the removed buttons. No commands are sent
+automatically on startup, restored selections or reconnect.
 
 Additional read-only entities expose reported profile names/targets, total runtime,
 filter types, filter/service intervals and dates, next due dates, summer bypass

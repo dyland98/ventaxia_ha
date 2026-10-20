@@ -17,5 +17,5 @@
     "aiomqtt==2.5.1",
     "ventaxiaiot==0.1.12"
   ],
-  "version": "0.3.0.2"
+  "version": "0.3.1"
 }

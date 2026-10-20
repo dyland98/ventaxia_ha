@@ -102,7 +102,7 @@ async def test_preparation_and_apply(hass, econiq_data):
             await mode.async_select_option(invalid)
     with pytest.raises(ValueError):
         await duration.async_select_option("0")
-    # Boost supports the selected duration, independent of the fixed 15-min shortcut.
+    # Boost also supports the selected duration.
     await mode.async_select_option("boost")
     await apply.async_press()
     coordinator._client.publish.assert_awaited_with(

@@ -191,13 +191,6 @@ class EconiqCache:
         return bool(self.values)
 
 
-def boost_payload(cancel: bool = False) -> str:
-    """Only Boost is exposed. Cancellation still needs hardware validation."""
-    return json.dumps(
-        {"gtm": 3, "treq": "00:00:00" if cancel else "00:15:00"}, separators=(",", ":")
-    )
-
-
 def mode_payload(mode: str, duration_minutes: int = 15) -> str:
     """Build a timed mode command; never expose OFF or persistent commands."""
     if mode not in ECONIQ_MODE_IDS:

@@ -6,7 +6,7 @@ Remotes observés : `origin` = fork ; aucun `upstream`. Aucun clone supplémenta
 
 ## État de validation et prérequis
 
-La version préparée est `0.3.0.2`. Le workflow ne publie que lorsqu’un tag `vX.Y.Z` ou `vX.Y.Z.N`
+La version préparée est `0.3.1`. Le workflow ne publie que lorsqu’un tag `vX.Y.Z` ou `vX.Y.Z.N`
 est poussé explicitement. Aucune publication n’est effectuée par une modification
 locale, un commit de branche ou une pull request. L’ancien Release Drafter a été
 retiré afin de ne pas proposer une version indépendante du manifeste.
@@ -41,7 +41,7 @@ Dans la branche de travail, vérifier les changements, puis exécuter :
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r requirements_test.txt
-.venv/bin/python scripts/check_release.py --tag v0.3.0.2
+.venv/bin/python scripts/check_release.py --tag v0.3.1
 .venv/bin/pytest --disable-socket --allow-unix-socket tests
 ```
 
@@ -68,16 +68,16 @@ les tests et contrôles GitHub avant de créer et pousser le tag explicitement :
 ```sh
 git switch main
 git pull --ff-only origin main
-.venv/bin/python scripts/check_release.py --tag v0.3.0.2
-git tag v0.3.0.2
-git push origin v0.3.0.2
+.venv/bin/python scripts/check_release.py --tag v0.3.1
+git tag v0.3.1
+git push origin v0.3.1
 ```
 
 Le push du tag lance `.github/workflows/release.yaml`, vérifie tag/manifeste,
 exécute les tests simulés puis crée la release dans `${{ github.repository }}`,
 donc le fork sur lequel l’action tourne. Pas de téléchargement depuis l’original.
-Le workflow ne crée pas de tag. Une version stable utilise `v0.3.0.2` dans Git et
-`0.3.0.2` dans le manifeste ; ne jamais déplacer un tag déjà publié.
+Le workflow ne crée pas de tag. Une version stable utilise `v0.3.1` dans Git et
+`0.3.1` dans le manifeste ; ne jamais déplacer un tag déjà publié.
 
 Vérifier ensuite https://github.com/dyland98/ventaxia_ha/releases : release publiée,
 non brouillon, marquée Latest, bon tag et bon commit. HACS télécharge les fichiers
@@ -120,10 +120,10 @@ restaurer le dossier précédent et son référencement HACS, puis redémarrer.
 2. Saisir `https://github.com/dyland98/ventaxia_ha`.
 3. Sélectionner le type **Intégration**, puis Ajouter.
 4. Chercher **Vent Axia MVHR (dyland98 fork)**, ouvrir le résultat et Télécharger.
-   Choisir la release publiée `v0.3.0.2` (la branche par défaut peut contenir du code
+   Choisir la release publiée `v0.3.1` (la branche par défaut peut contenir du code
    non publié ; ne pas la confondre avec une version stable).
 5. Vérifier `/config/custom_components/ventaxia_ha/manifest.json` : domaine
-   `ventaxia_ha`, documentation `dyland98`, version `0.3.0.2`.
+   `ventaxia_ha`, documentation `dyland98`, version `0.3.1`.
 6. Redémarrer Home Assistant.
 7. Paramètres > Appareils et services > Ajouter une intégration > **Vent Axia** >
    **Sentinel Econiq**. Pour une nouvelle installation Kinetic, choisir Kinetic.
@@ -164,20 +164,16 @@ restent à installer et tester. Cela ne constitue pas une validation HACS par l�
   supposée. Les sondes T1–T4 ont les noms retrouvés dans l’APK. `trem` reste brut.
   Le masque `6144` correspond aux alertes W-12 et W-13 confirmées par l’utilisateur,
   jamais à un nombre d’avertissements.
-- Appuyer une fois sur **Boost 15 minutes** : vérifier les messages `vent/caf`
-  (`ps: 3`), `vent/cor` et la montée des RPM. L’envoi seul ne confirme pas le Boost.
 - Choisir **Mode de la dérogation**, **Durée de la dérogation**, puis **Appliquer
-  la dérogation**. Les choix sont restaurés sans commande au redémarrage. Les
-  anciens boutons de 15 min restent disponibles pour compatibilité. L’utilisateur
-  confirme la réaction physique de Maximum, bien que le mode publié puisse rester
-  celui d’avant : ne pas confondre commande demandée et mode confirmé.
-  Voir [le guide des commandes et les constats APK](ECONIQ_APK.md) pour les durées
-  et les fonctions manquantes. Les nouveaux contrôles restent à tester sur HA.
-  Le mode OFF n’est pas exposé.
-- Activer volontairement l’entité désactivée **Annuler Boost (à valider)**, puis
-  tester son bouton. La commande est déduite de l’APK et doit encore être validée
-  sur l’appareil. Vérifier le retour de l’état et des ventilateurs. Ne pas annoncer
-  cette annulation comme testée avant observation. Le Boost expire après 15 min.
+  la dérogation**. Vérifier les messages `vent/caf`, `vent/cor` et les RPM.
+  Les choix sont restaurés sans commande au redémarrage. Maximum peut réagir
+  physiquement sans que le mode publié change : distinguer demande et état confirmé.
+- Tester **Annuler la dérogation sélectionnée** et observer l’état et les ventilateurs.
+  Le retrait de « à valider » du nom ne constitue pas un test matériel.
+- Les six anciens boutons Boost/15 min sont supprimés automatiquement du registre
+  en 0.3.1. Adapter les automatisations qui les utilisaient ; les sélecteurs et
+  l’identifiant du bouton d’annulation sélectionnée sont conservés.
+  Voir [le guide des commandes et les constats APK](ECONIQ_APK.md).
 - Couper temporairement l’accès réseau VMC : les entités doivent devenir
   indisponibles après détection de la rupture MQTT (keepalive 60 s). Restaurer le
   réseau, vérifier la reconnexion avec temporisation et la réception de données.

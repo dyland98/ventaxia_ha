@@ -1,6 +1,5 @@
 """Econiq entities use neutral topic names where semantics are unconfirmed."""
 
-from homeassistant.components.button import ButtonEntity
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -180,34 +179,3 @@ class EconiqSensor(EconiqEntity, SensorEntity):
                 attributes["profile_name"] = profile.get("name")
             return attributes
         return None
-
-
-class EconiqBoostButton(EconiqEntity, ButtonEntity):
-    _attr_icon = "mdi:fan-plus"
-
-    def __init__(self, coordinator, cancel=False):
-        super().__init__(coordinator, "cancel_boost" if cancel else "boost_15")
-        self.cancel = cancel
-        # An inferred command must be explicitly enabled by the user.
-        self._attr_entity_registry_enabled_default = not cancel
-
-    async def async_press(self):
-        await self.coordinator.async_boost(self.cancel)
-
-
-class EconiqModeButton(EconiqEntity, ButtonEntity):
-    """Explicit timed mode control; non-Boost modes are marked unverified."""
-
-    MODES = ("low", "normal", "purge", "maximum")
-
-    def __init__(self, coordinator, mode: str):
-        if mode not in self.MODES:
-            raise ValueError("Unsupported Econiq mode button")
-        super().__init__(coordinator, f"{mode}_15_unverified")
-        self.mode = mode
-        self._attr_icon = "mdi:fan"
-        self._attr_entity_category = EntityCategory.CONFIG
-        self._attr_entity_registry_enabled_default = False
-
-    async def async_press(self):
-        await self.coordinator.async_set_mode(self.mode, duration_minutes=15)

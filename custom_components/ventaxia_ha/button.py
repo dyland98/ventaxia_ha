@@ -8,6 +8,7 @@ import logging
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -26,17 +27,35 @@ async def async_setup_entry(
 
     from .econiq import CONF_DEVICE_TYPE, ECONIQ
     from .econiq_controls import EconiqApplyOverrideButton, EconiqCancelOverrideButton
-    from .econiq_entities import EconiqBoostButton, EconiqModeButton
 
     if config_entry.data.get(CONF_DEVICE_TYPE) == ECONIQ:
         econiq = hass.data[DOMAIN][config_entry.entry_id]
+        # Remove retired shortcuts, including disabled registry entries.
+        retired_ids = {
+            f"{config_entry.unique_id}_{key}"
+            for key in (
+                "boost_15",
+                "cancel_boost",
+                "low_15_unverified",
+                "normal_15_unverified",
+                "purge_15_unverified",
+                "maximum_15_unverified",
+            )
+        }
+        registry = er.async_get(hass)
+        for entity in er.async_entries_for_config_entry(
+            registry, config_entry.entry_id
+        ):
+            if (
+                entity.domain == "button"
+                and entity.platform == DOMAIN
+                and entity.unique_id in retired_ids
+            ):
+                registry.async_remove(entity.entity_id)
         async_add_entities(
             [
                 EconiqApplyOverrideButton(econiq),
                 EconiqCancelOverrideButton(econiq),
-                EconiqBoostButton(econiq),
-                EconiqBoostButton(econiq, cancel=True),
-                *(EconiqModeButton(econiq, mode) for mode in EconiqModeButton.MODES),
             ]
         )
         return

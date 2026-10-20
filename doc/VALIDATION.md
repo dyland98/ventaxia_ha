@@ -1,3 +1,13 @@
+# Simplification des boutons — 0.3.1
+
+Les six anciens boutons Econiq sont supprimés de la plateforme et du registre,
+y compris lorsqu’ils sont désactivés. Le test HA vérifie la conservation du bouton
+d’annulation sélectionnée avec son identifiant existant, son nouveau nom, les
+entités d’autres types et d’autres entrées, et l’absence de commande au démarrage.
+Les 123 tests passent, ainsi que les contrôles de style et de packaging.
+Les tests couvrent toujours les commandes de mode/durée et l’unique abonnement MQTT.
+Aucun test d’installation HACS ou de commande sur VMC réelle n’est revendiqué.
+
 # Correctif des abonnements MQTT — 0.3.0.2
 
 Les journaux utilisateur de 0.3.0.1 montrent un échec de l’abonnement multiple,
