@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Publish release from this repository and existing tag
-        run: gh release create "$RELEASE_TAG" --repo "$RELEASE_REPO" --verify-tag --title "$RELEASE_TAG" --generate-notes --latest
+        run: gh release create "$RELEASE_TAG" --repo "$RELEASE_REPO" --verify-tag --title "$RELEASE_TAG" --notes-file RELEASE_NOTES.md --latest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}

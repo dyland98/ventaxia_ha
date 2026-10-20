@@ -16,7 +16,10 @@ def check(tag=None):
     hacs = json.loads((ROOT / "hacs.json").read_text())
     project = tomllib.loads((integration / "pyproject.toml").read_text())["project"]
     version = manifest["version"]
-    assert re.fullmatch(r"\d+\.\d+\.\d+", version), "Use a stable x.y.z version"
+    assert re.fullmatch(r"\d+\.\d+\.\d+(?:\.\d+)?", version), "Use x.y.z or x.y.z.n"
+    assert (
+        (ROOT / "RELEASE_NOTES.md").read_text().startswith(f"# {version}\n")
+    ), "Release notes version differs"
     assert manifest["domain"] == integration.name == "ventaxia_ha"
     assert project["version"] == version, "pyproject and manifest versions differ"
     assert project["dependencies"] == manifest["requirements"]

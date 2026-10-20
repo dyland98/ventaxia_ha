@@ -6,7 +6,7 @@ Remotes observés : `origin` = fork ; aucun `upstream`. Aucun clone supplémenta
 
 ## État de validation et prérequis
 
-La version préparée est `0.3.0`. Le workflow ne publie que lorsqu’un tag `vX.Y.Z`
+La version préparée est `0.3.0.1`. Le workflow ne publie que lorsqu’un tag `vX.Y.Z` ou `vX.Y.Z.N`
 est poussé explicitement. Aucune publication n’est effectuée par une modification
 locale, un commit de branche ou une pull request. L’ancien Release Drafter a été
 retiré afin de ne pas proposer une version indépendante du manifeste.
@@ -41,11 +41,12 @@ Dans la branche de travail, vérifier les changements, puis exécuter :
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r requirements_test.txt
-.venv/bin/python scripts/check_release.py --tag v0.3.0
+.venv/bin/python scripts/check_release.py --tag v0.3.0.1
 .venv/bin/pytest --disable-socket --allow-unix-socket tests
 ```
 
-Le manifeste est la version de référence. `custom_components/ventaxia_ha/pyproject.toml`
+Le manifeste est la version de référence. Mettre à jour `RELEASE_NOTES.md` pour la
+même version : le workflow publie ces notes avec la release. `custom_components/ventaxia_ha/pyproject.toml`
 doit porter la même version et les mêmes dépendances. Pour la version suivante,
 modifier ces deux fichiers et documenter les changements avant de créer le tag.
 `hacs.json` ne porte pas la version : HACS lit les tags des releases GitHub.
@@ -53,7 +54,7 @@ modifier ces deux fichiers et documenter les changements avant de créer le tag.
 **Commandes de publication à exécuter uniquement après approbation explicite** :
 
 ```sh
-git add custom_components hacs.json README.md doc scripts tests setup.cfg requirements_test.txt .pre-commit-config.yaml .github
+git add custom_components hacs.json README.md RELEASE_NOTES.md doc scripts tests setup.cfg requirements_test.txt .pre-commit-config.yaml .github
 git commit -m "Add Econiq backend and prepare fork HACS releases"
 git push origin main
 ```
@@ -67,16 +68,16 @@ les tests et contrôles GitHub avant de créer et pousser le tag explicitement :
 ```sh
 git switch main
 git pull --ff-only origin main
-.venv/bin/python scripts/check_release.py --tag v0.3.0
-git tag v0.3.0
-git push origin v0.3.0
+.venv/bin/python scripts/check_release.py --tag v0.3.0.1
+git tag v0.3.0.1
+git push origin v0.3.0.1
 ```
 
 Le push du tag lance `.github/workflows/release.yaml`, vérifie tag/manifeste,
 exécute les tests simulés puis crée la release dans `${{ github.repository }}`,
 donc le fork sur lequel l’action tourne. Pas de téléchargement depuis l’original.
-Le workflow ne crée pas de tag. Une version stable utilise `v0.3.0` dans Git et
-`0.3.0` dans le manifeste ; ne jamais déplacer un tag déjà publié.
+Le workflow ne crée pas de tag. Une version stable utilise `v0.3.0.1` dans Git et
+`0.3.0.1` dans le manifeste ; ne jamais déplacer un tag déjà publié.
 
 Vérifier ensuite https://github.com/dyland98/ventaxia_ha/releases : release publiée,
 non brouillon, marquée Latest, bon tag et bon commit. HACS télécharge les fichiers
@@ -119,10 +120,10 @@ restaurer le dossier précédent et son référencement HACS, puis redémarrer.
 2. Saisir `https://github.com/dyland98/ventaxia_ha`.
 3. Sélectionner le type **Intégration**, puis Ajouter.
 4. Chercher **Vent Axia MVHR (dyland98 fork)**, ouvrir le résultat et Télécharger.
-   Choisir la release publiée `v0.3.0` (la branche par défaut peut contenir du code
+   Choisir la release publiée `v0.3.0.1` (la branche par défaut peut contenir du code
    non publié ; ne pas la confondre avec une version stable).
 5. Vérifier `/config/custom_components/ventaxia_ha/manifest.json` : domaine
-   `ventaxia_ha`, documentation `dyland98`, version `0.3.0`.
+   `ventaxia_ha`, documentation `dyland98`, version `0.3.0.1`.
 6. Redémarrer Home Assistant.
 7. Paramètres > Appareils et services > Ajouter une intégration > **Vent Axia** >
    **Sentinel Econiq**. Pour une nouvelle installation Kinetic, choisir Kinetic.

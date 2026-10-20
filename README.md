@@ -42,7 +42,7 @@ entries use `econiq:<mqtt_prefix>` and cannot invoke the Kinetic controls.
 **Home Assistant 2026.10.0 or newer** is the declared, conservatively tested baseline.
 Native TLS-PSK support is checked in the HA Python/OpenSSL runtime. Local automated
 tests do not prove installation via HACS or operation on a physical VMC.
-Version `0.3.0` is prepared locally; no GitHub release is implied by this README.
+Release **`0.3.0.1`**: see [release notes](RELEASE_NOTES.md) and [GitHub releases][releases].
 
 ### Replacing the original installation
 
