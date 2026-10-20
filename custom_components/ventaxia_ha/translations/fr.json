@@ -1,0 +1,137 @@
+{
+  "config": {
+    "step": {
+      "kinetic": {
+        "title": "Sentinel Kinetic Advance S",
+        "menu_options": {
+          "kinetic": "Sentinel Kinetic Advance S",
+          "econiq": "Sentinel Econiq (MQTT TLS-PSK)"
+        },
+        "description": "Saisissez les informations de connexion Kinetic. La clé Wi-Fi et le SSID figurent sur l’étiquette.",
+        "data": {
+          "host": "Hôte / adresse IP",
+          "port": "Port",
+          "identity": "Identité",
+          "psk_key": "Clé Wi-Fi (étiquette)",
+          "wifi_device_id": "SSID (étiquette)"
+        }
+      },
+      "econiq": {
+        "title": "Sentinel Econiq",
+        "description": "Connexion locale directe. Le préfixe MQTT est distinct du SSID. Aucune commande ne sera envoyée pendant la validation.",
+        "data": {
+          "host": "Hôte / adresse IP",
+          "port": "Port",
+          "identity": "Identité PSK",
+          "psk_key": "PSK hexadécimale (privée)",
+          "mqtt_prefix": "Préfixe MQTT"
+        }
+      },
+      "user": {
+        "title": "Vent Axia",
+        "menu_options": {
+          "kinetic": "Sentinel Kinetic Advance S",
+          "econiq": "Sentinel Econiq (MQTT TLS-PSK)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Connexion impossible. Vérifiez hôte, port, réseau et PSK ; une erreur TLS peut aussi provenir de la clé.",
+      "auth": "Identité ou clé incorrecte, ou négociation TLS refusée.",
+      "unknown": "Erreur inattendue. Consultez les journaux.",
+      "psk_unavailable": "Ce runtime HA ne fournit pas TLS-PSK. Python ≥ 3.13 et OpenSSL avec ssl.HAS_PSK et set_psk_client_callback sont requis.",
+      "invalid_psk_or_prefix": "Vérifiez la PSK : hexadécimal de longueur paire, non vide, non nul ; l’identité doit être valide et le préfixe sans + ni #.",
+      "no_econiq_metadata": "Aucune métadonnée Econiq reçue sous ce préfixe en 15 s. Vérifiez le préfixe MQTT et la diffusion des données."
+    },
+    "abort": {
+      "already_configured": "Cet appareil est déjà configuré."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "t1": {
+        "name": "Température T1"
+      },
+      "t2": {
+        "name": "Température T2"
+      },
+      "t3": {
+        "name": "Température T3"
+      },
+      "t4": {
+        "name": "Température T4"
+      },
+      "erh": {
+        "name": "Humidité ERH"
+      },
+      "irh": {
+        "name": "Humidité IRH"
+      },
+      "power": {
+        "name": "Puissance"
+      },
+      "faults": {
+        "name": "Défauts (valeur brute)"
+      },
+      "warnings": {
+        "name": "Avertissements (valeur brute)"
+      },
+      "notifications": {
+        "name": "Notifications (valeur brute)"
+      },
+      "mode": {
+        "name": "Mode (ps brut)"
+      },
+      "override": {
+        "name": "Dérogation (ot brut)"
+      },
+      "rssi": {
+        "name": "RSSI Wi-Fi"
+      },
+      "afs_rpm": {
+        "name": "AFS rpm"
+      },
+      "afs_pwr": {
+        "name": "AFS pwr"
+      },
+      "afs_fm": {
+        "name": "AFS fm"
+      },
+      "afs_fd": {
+        "name": "AFS fd"
+      },
+      "afe_rpm": {
+        "name": "AFE rpm"
+      },
+      "afe_pwr": {
+        "name": "AFE pwr"
+      },
+      "afe_fm": {
+        "name": "AFE fm"
+      },
+      "afe_fd": {
+        "name": "AFE fd"
+      },
+      "filter1_pa": {
+        "name": "Filtre 1 pa (brut)"
+      },
+      "filter1_lr": {
+        "name": "Filtre 1 lr (brut)"
+      },
+      "filter2_pa": {
+        "name": "Filtre 2 pa (brut)"
+      },
+      "filter2_lr": {
+        "name": "Filtre 2 lr (brut)"
+      }
+    },
+    "button": {
+      "boost_15": {
+        "name": "Boost 15 minutes"
+      },
+      "cancel_boost": {
+        "name": "Annuler Boost (à valider)"
+      }
+    }
+  }
+}

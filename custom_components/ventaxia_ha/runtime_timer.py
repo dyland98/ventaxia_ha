@@ -1,7 +1,7 @@
 # File: ventaxia_ha/runtime_timer.py
 import asyncio
-import logging
 from datetime import datetime, timedelta, timezone
+import logging
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity

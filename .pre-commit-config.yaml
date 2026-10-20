@@ -9,7 +9,7 @@ repos:
 
     # Run isort first to handle imports
   - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2 # Use the latest stable version (check PyPI for current)
+    rev: 9.0.2
     hooks:
       - id: isort
         name: isort (Python imports) # More descriptive name
@@ -21,7 +21,7 @@ repos:
     # Then run black
 
   - repo: https://github.com/psf/black
-    rev: 24.4.2 # Use the latest stable version of black (check PyPI for current)
+    rev: 26.10.1
     hooks:
       - id: black
         name: black (Python formatter) # More descriptive name

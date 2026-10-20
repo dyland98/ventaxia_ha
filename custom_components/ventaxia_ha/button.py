@@ -1,5 +1,6 @@
 # File: ventaxia_ha/button.py
 """Button platform for VentAxia IoT integration."""
+
 from __future__ import annotations
 
 import logging
@@ -22,6 +23,17 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up VentAxia buttons from a config entry."""
+
+    from .econiq import CONF_DEVICE_TYPE, ECONIQ
+    from .econiq_entities import EconiqBoostButton
+
+    if config_entry.data.get(CONF_DEVICE_TYPE) == ECONIQ:
+        econiq = hass.data[DOMAIN][config_entry.entry_id]
+        async_add_entities(
+            [EconiqBoostButton(econiq), EconiqBoostButton(econiq, cancel=True)]
+        )
+        return
+
     coordinator: VentAxiaCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = [

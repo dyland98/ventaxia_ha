@@ -1,7 +1,7 @@
 {
   "config": {
     "step": {
-      "user": {
+      "kinetic": {
         "title": "Vent Axia Integración para el Sentinel Kinetic Advance S MVHR",
         "description": "Introduce la información de conexión de tu dispositivo. La clave WiFi y el Identificador de Red se encuentran en la etiqueta del dispositivo.",
         "data": {
@@ -11,12 +11,123 @@
           "psk_key": "Clave WiFi del dispositivo (en la etiqueta)",
           "wifi_device_id": "Identificador de Red del dispositivo (en la etiqueta)"
         }
+      },
+      "user": {
+        "title": "Vent Axia",
+        "menu_options": {
+          "kinetic": "Sentinel Kinetic Advance S",
+          "econiq": "Sentinel Econiq (MQTT TLS-PSK)"
+        }
+      },
+      "econiq": {
+        "title": "Sentinel Econiq",
+        "description": "Direct local connection. The MQTT prefix differs from the Wi-Fi SSID. Validation sends no commands.",
+        "data": {
+          "host": "Host / IP address",
+          "port": "Port",
+          "identity": "PSK identity",
+          "psk_key": "Hexadecimal PSK (private)",
+          "mqtt_prefix": "MQTT prefix"
+        }
       }
     },
     "error": {
       "cannot_connect": "No se puede conectar al dispositivo Vent-Axia. Verifique el host, el puerto y la conexión de red.",
       "auth": "El Clave WiFi o la identidad son incorrectos.",
-      "unknown": "Se produjo un error inesperado. Por favor, revise los registros."
+      "unknown": "Se produjo un error inesperado. Por favor, revise los registros.",
+      "psk_unavailable": "This HA runtime has no TLS-PSK. Python ≥3.13 and OpenSSL with ssl.HAS_PSK and set_psk_client_callback are required.",
+      "invalid_psk_or_prefix": "Check PSK: nonempty, even-length hexadecimal, nonzero; use a valid identity and a prefix without + or #.",
+      "no_econiq_metadata": "No Econiq metadata received under this prefix within 15 s. Check the MQTT prefix and telemetry."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "t1": {
+        "name": "Temperature T1"
+      },
+      "t2": {
+        "name": "Temperature T2"
+      },
+      "t3": {
+        "name": "Temperature T3"
+      },
+      "t4": {
+        "name": "Temperature T4"
+      },
+      "erh": {
+        "name": "Humidity ERH"
+      },
+      "irh": {
+        "name": "Humidity IRH"
+      },
+      "power": {
+        "name": "Power"
+      },
+      "faults": {
+        "name": "Faults (raw value)"
+      },
+      "warnings": {
+        "name": "Warnings (raw value)"
+      },
+      "notifications": {
+        "name": "Notifications (raw value)"
+      },
+      "mode": {
+        "name": "Mode (raw ps)"
+      },
+      "override": {
+        "name": "Override (raw ot)"
+      },
+      "rssi": {
+        "name": "Wi-Fi RSSI"
+      },
+      "afs_rpm": {
+        "name": "AFS rpm"
+      },
+      "afs_pwr": {
+        "name": "AFS pwr"
+      },
+      "afs_fm": {
+        "name": "AFS fm"
+      },
+      "afs_fd": {
+        "name": "AFS fd"
+      },
+      "afe_rpm": {
+        "name": "AFE rpm"
+      },
+      "afe_pwr": {
+        "name": "AFE pwr"
+      },
+      "afe_fm": {
+        "name": "AFE fm"
+      },
+      "afe_fd": {
+        "name": "AFE fd"
+      },
+      "filter1_pa": {
+        "name": "Filter 1 pa (raw)"
+      },
+      "filter1_lr": {
+        "name": "Filter 1 lr (raw)"
+      },
+      "filter2_pa": {
+        "name": "Filter 2 pa (raw)"
+      },
+      "filter2_lr": {
+        "name": "Filter 2 lr (raw)"
+      }
+    },
+    "button": {
+      "boost_15": {
+        "name": "Boost 15 minutes"
+      },
+      "cancel_boost": {
+        "name": "Cancel Boost (to validate)"
+      }
     }
   }
 }

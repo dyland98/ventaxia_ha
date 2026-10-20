@@ -1,115 +1,127 @@
-# tests/test_config_flow.py
+"""Config flow routes models separately and preserves Kinetic identifiers."""
 
+from unittest.mock import AsyncMock, patch
 
-from homeassistant import config_entries, data_entry_flow
-from homeassistant.const import CONF_HOST
-from homeassistant.core import HomeAssistant
+import aiomqtt
+from homeassistant import config_entries
+import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_component
 
-# Ensure these exceptions are correctly imported from your config_flow.py
-from custom_components.ventaxia_ha.config_flow import CannotConnect, InvalidAuth
+from custom_components.ventaxia_ha.config_flow import validate_econiq, validate_input
 from custom_components.ventaxia_ha.const import DOMAIN
+from custom_components.ventaxia_ha.econiq import PskUnavailableError
 
-from .const import MOCK_CONFIG
+KINETIC_DATA = {
+    "host": "kinetic.example",
+    "port": 47811,
+    "identity": "test",
+    "psk_key": "synthetic-wifi-key",
+    "wifi_device_id": "KINETIC-TEST",
+}
 
-# Note: The `hass` fixture is provided by `pytest-homeassistant-custom-component`
-# We now use the `mock_ventaxia_iot_components` fixture from tests/conftest.py
 
-
-async def test_successful_config_flow(
-    hass: HomeAssistant, mock_ventaxia_iot_components: dict
-):
-    """Test a successful config flow."""
-    # Access the mock VentaxiaProtocol class from the components dict
-    mock_ventaxia_protocol_class = mock_ventaxia_iot_components["protocol_class"]
-
-    # Start the configuration flow
+async def start_flow(hass, step):
+    if "frontend" not in hass.config.components:
+        mock_component(hass, "frontend")
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
-    # Check that the form is shown
-    assert result["type"] is data_entry_flow.FlowResultType.FORM
-    assert result["step_id"] == "user"
-
-    # Fill in the form with mock data
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], MOCK_CONFIG
+    assert result["type"] == "menu"
+    return await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": step}
     )
 
-    # Check that the flow completed successfully
-    assert result["type"] is data_entry_flow.FlowResultType.CREATE_ENTRY
-    assert result["title"] == MOCK_CONFIG[CONF_HOST]
-    assert result["data"] == MOCK_CONFIG
 
-    # Ensure the check_connection method was called on our mock VentaxiaProtocol class
-    mock_ventaxia_protocol_class.check_connection.assert_called_once()
-    # Also, check that the AsyncNativePskClient.connect was called during setup_entry
-    mock_ventaxia_iot_components["client"].connect.assert_called_once()
+async def test_econiq_success_and_duplicate(hass, econiq_data):
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.validate_econiq",
+        return_value={"title": "Econiq 300"},
+    ), patch("custom_components.ventaxia_ha.async_setup_entry", return_value=True):
+        result = await start_flow(hass, "econiq")
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {k: v for k, v in econiq_data.items() if k != "device_type"},
+        )
+        assert result["type"] == "create_entry"
+        assert result["result"].unique_id == "econiq:TEST-UNIT"
+        assert result["data"]["device_type"] == "econiq"
+        second = await start_flow(hass, "econiq")
+        second = await hass.config_entries.flow.async_configure(
+            second["flow_id"],
+            {k: v for k, v in econiq_data.items() if k != "device_type"},
+        )
+        assert second["reason"] == "already_configured"
 
 
-async def test_config_flow_cannot_connect(
-    hass: HomeAssistant, mock_ventaxia_iot_components: dict
+@pytest.mark.parametrize(
+    "error,expected",
+    [
+        (PskUnavailableError(), "psk_unavailable"),
+        (aiomqtt.MqttError(), "cannot_connect"),
+        (TimeoutError(), "no_econiq_metadata"),
+    ],
+)
+async def test_econiq_errors(hass, econiq_data, error, expected):
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.validate_econiq", side_effect=error
+    ):
+        result = await start_flow(hass, "econiq")
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {k: v for k, v in econiq_data.items() if k != "device_type"},
+        )
+        assert result["errors"] == {"base": expected}
+
+
+async def test_econiq_invalid_key(hass, econiq_data):
+    econiq_data["psk_key"] = "0000"
+    with patch("custom_components.ventaxia_ha.config_flow.validate_econiq") as validate:
+        result = await start_flow(hass, "econiq")
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {k: v for k, v in econiq_data.items() if k != "device_type"},
+        )
+        assert result["errors"] == {"base": "invalid_psk_or_prefix"}
+        validate.assert_not_called()
+
+
+async def test_kinetic_success_with_econiq_entry(hass, econiq_data):
+    MockConfigEntry(
+        domain=DOMAIN, unique_id="econiq:TEST-UNIT", data=econiq_data
+    ).add_to_hass(hass)
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.validate_input",
+        return_value={"title": "Kinetic test"},
+    ), patch("custom_components.ventaxia_ha.async_setup_entry", return_value=True):
+        result = await start_flow(hass, "kinetic")
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], KINETIC_DATA
+        )
+        assert result["type"] == "create_entry"
+        assert result["result"].unique_id == "KINETIC-TEST"
+        assert "device_type" not in result["data"]
+
+
+async def test_validation_receives_metadata_without_commands(
+    hass, econiq_data, fake_client
 ):
-    """Test connection error during config flow."""
-    # Make the mock VentaxiaProtocol's check_connection raise an exception for this test
-    mock_ventaxia_iot_components["protocol_class"].check_connection.side_effect = (
-        CannotConnect
-    )
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], MOCK_CONFIG
-    )
-
-    # Check that the form is shown again with an error
-    assert result["type"] is data_entry_flow.FlowResultType.FORM
-    assert result["errors"] == {"base": "cannot_connect"}
-    assert result["step_id"] == "user"
-
-    mock_ventaxia_iot_components["protocol_class"].check_connection.assert_called_once()
-    # Connect should not be called if check_connection fails
-    mock_ventaxia_iot_components["client"].connect.assert_not_called()
+    fake_client.metadata()
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.create_client",
+        return_value=fake_client,
+    ):
+        assert await validate_econiq(hass, econiq_data) == {"title": "Econiq 300"}
+    fake_client.publish.assert_not_awaited()
+    assert fake_client.closed
 
 
-async def test_config_flow_invalid_auth(
-    hass: HomeAssistant, mock_ventaxia_iot_components: dict
-):
-    """Test invalid authentication error during config flow."""
-    # Make the mock VentaxiaProtocol's check_connection raise an InvalidAuth exception
-    mock_ventaxia_iot_components["protocol_class"].check_connection.side_effect = (
-        InvalidAuth
-    )
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], MOCK_CONFIG
-    )
-
-    # Check that the form is shown again with an invalid_auth error
-    assert result["type"] is data_entry_flow.FlowResultType.FORM
-    assert result["errors"] == {"base": "invalid_auth"}
-    assert result["step_id"] == "user"
-
-    mock_ventaxia_iot_components["protocol_class"].check_connection.assert_called_once()
-    mock_ventaxia_iot_components["client"].connect.assert_not_called()
-
-
-async def test_config_flow_already_configured(
-    hass: HomeAssistant, mock_ventaxia_iot_components: dict, setup_integration
-):
-    """Test that duplicate host/device ID is aborted."""
-    # A config entry is already set up by `setup_integration` fixture
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], MOCK_CONFIG
-    )
-
-    # It should abort if it detects an existing entry
-    assert result["type"] is data_entry_flow.FlowResultType.ABORT
-    assert result["reason"] == "already_configured"
+async def test_kinetic_validation_cleanup(hass):
+    client = AsyncMock()
+    client.connect.side_effect = ConnectionError("simulated")
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.AsyncNativePskClient",
+        return_value=client,
+    ):
+        with pytest.raises(ConnectionError):
+            await validate_input(hass, KINETIC_DATA)
+    client.close.assert_awaited_once()
