@@ -50,13 +50,19 @@ async def async_setup_entry(
     """Set up VentAxia sensors from a config entry."""
 
     from .econiq import CONF_DEVICE_TYPE, ECONIQ
+    from .econiq_discovery import register_dynamic_sensors
     from .econiq_entities import SENSORS, EconiqSensor
+    from .econiq_extended import READINGS, EconiqExtendedSensor
 
     if config_entry.data.get(CONF_DEVICE_TYPE) == ECONIQ:
         econiq = hass.data[DOMAIN][config_entry.entry_id]
         async_add_entities(
-            EconiqSensor(econiq, *description) for description in SENSORS
+            [
+                *(EconiqSensor(econiq, *description) for description in SENSORS),
+                *(EconiqExtendedSensor(econiq, reading) for reading in READINGS),
+            ]
         )
+        register_dynamic_sensors(econiq, async_add_entities)
         return
 
     coordinator: VentAxiaCoordinator = hass.data[DOMAIN][config_entry.entry_id]

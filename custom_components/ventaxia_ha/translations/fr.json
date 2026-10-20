@@ -49,16 +49,16 @@
   "entity": {
     "sensor": {
       "t1": {
-        "name": "Température T1"
+        "name": "Air neuf extérieur (T1)"
       },
       "t2": {
-        "name": "Température T2"
+        "name": "Air insufflé (T2)"
       },
       "t3": {
-        "name": "Température T3"
+        "name": "Air extrait du logement (T3)"
       },
       "t4": {
-        "name": "Température T4"
+        "name": "Air rejeté dehors (T4)"
       },
       "erh": {
         "name": "Humidité ERH"
@@ -67,97 +67,327 @@
         "name": "Humidité IRH"
       },
       "eco2": {
-        "name": "io/eco2/val (brut)"
+        "name": "CO₂ ECO2 (valeur brute)"
       },
       "ico2": {
-        "name": "io/ico2/val (brut)"
+        "name": "CO₂ ICO2 (valeur brute)"
       },
       "zone2_co2": {
-        "name": "zone/2/co2 (brut)"
+        "name": "CO₂ zone 2 (valeur brute)"
       },
       "zone2_t": {
-        "name": "zone/2/t (brut)"
+        "name": "Température zone 2 (valeur brute)"
       },
       "sn1_rh": {
-        "name": "sn/1/rh (brut)"
+        "name": "Humidité sonde 1 (valeur brute)"
       },
       "power": {
         "name": "Puissance"
       },
       "vent_cm": {
-        "name": "vent/cm (brut)"
+        "name": "Mode de régulation",
+        "state": {
+          "fixed_percentage": "Pourcentage fixe",
+          "constant_volume": "Débit constant",
+          "constant_pressure": "Pression constante",
+          "unknown_code": "Code non reconnu"
+        }
       },
       "vent_saq": {
-        "name": "vent/saq (brut)"
+        "name": "Qualité de l’air",
+        "state": {
+          "good": "Bonne",
+          "average": "Moyenne",
+          "poor": "Mauvaise",
+          "unknown_code": "Code non reconnu"
+        }
       },
       "vent_maxaf": {
-        "name": "vent/maxaf (brut)"
+        "name": "Débit maximal (valeur brute)"
       },
       "faults": {
-        "name": "Défauts (valeur brute)"
+        "name": "Défauts",
+        "state": {
+          "clear": "Aucun",
+          "active": "Présents"
+        }
       },
       "warnings": {
-        "name": "Avertissements (valeur brute)"
+        "name": "Avertissements",
+        "state": {
+          "clear": "Aucun",
+          "filter_clean_overdue": "Nettoyage/remplacement du filtre en retard",
+          "service_overdue": "Entretien en retard",
+          "filter_and_service_overdue": "Filtre et entretien en retard",
+          "other": "Autre avertissement présent"
+        }
       },
       "notifications": {
-        "name": "Notifications (valeur brute)"
+        "name": "Notifications",
+        "state": {
+          "clear": "Aucun",
+          "active": "Présents"
+        }
       },
       "mode": {
-        "name": "Mode (ps brut)"
+        "name": "Mode de ventilation actuel",
+        "state": {
+          "off": "Arrêt (état reçu)",
+          "low": "Réduit",
+          "normal": "Normal",
+          "boost": "Boost",
+          "purge": "Purge",
+          "maximum": "Maximum",
+          "unknown_code": "Mode non reconnu"
+        }
       },
       "override": {
-        "name": "Dérogation (ot brut)"
+        "name": "Origine de la dérogation",
+        "state": {
+          "none": "Aucune dérogation",
+          "zonal_schedule": "Programmation par zone",
+          "external_co2": "Capteur CO₂ externe",
+          "external_humidity": "Capteur d’humidité externe",
+          "zonal_co2": "Capteur CO₂ de zone",
+          "zonal_voc": "Capteur COV de zone",
+          "zonal_humidity": "Capteur d’humidité de zone",
+          "summer_bypass": "Bypass été",
+          "zonal_switch": "Entrée de commande de zone",
+          "user_override": "Dérogation utilisateur",
+          "silent_hours": "Heures silencieuses",
+          "frost_protection": "Protection antigel",
+          "damper": "Clapet",
+          "filter_calibration": "Étalonnage des filtres",
+          "shutdown": "Arrêt de protection",
+          "commissioning": "Commande de mise en service",
+          "standby": "Veille",
+          "diagnostic": "Diagnostic",
+          "unknown_code": "Code non reconnu"
+        }
       },
       "rssi": {
-        "name": "RSSI Wi-Fi"
+        "name": "Signal Wi-Fi"
       },
       "afs_rpm": {
-        "name": "AFS rpm"
+        "name": "Insufflation : vitesse du ventilateur"
       },
       "afs_pwr": {
-        "name": "AFS pwr"
+        "name": "Insufflation : puissance du moteur"
       },
       "afs_fm": {
-        "name": "AFS fm"
+        "name": "Insufflation : débit mesuré"
       },
       "afs_fd": {
-        "name": "AFS fd"
+        "name": "Insufflation : consigne (brute)"
       },
       "afs_pwm": {
-        "name": "AFS PWM (brut)"
+        "name": "Insufflation : commande moteur PWM (brute)"
       },
       "afs_dr": {
-        "name": "AFS dr (brut)"
+        "name": "Insufflation : durée de fonctionnement"
       },
       "afe_rpm": {
-        "name": "AFE rpm"
+        "name": "Extraction : vitesse du ventilateur"
       },
       "afe_pwr": {
-        "name": "AFE pwr"
+        "name": "Extraction : puissance du moteur"
       },
       "afe_fm": {
-        "name": "AFE fm"
+        "name": "Extraction : débit mesuré"
       },
       "afe_fd": {
-        "name": "AFE fd"
+        "name": "Extraction : consigne (brute)"
       },
       "afe_pwm": {
-        "name": "AFE PWM (brut)"
+        "name": "Extraction : commande moteur PWM (brute)"
       },
       "afe_dr": {
-        "name": "AFE dr (brut)"
+        "name": "Extraction : durée de fonctionnement"
       },
       "filter1_pa": {
-        "name": "Filtre 1 pa (brut)"
+        "name": "Filtre 1 : mesure de pression (brute)"
       },
       "filter1_lr": {
-        "name": "Filtre 1 lr (brut)"
+        "name": "Filtre 1 : durée de vie restante (brute)"
       },
       "filter2_pa": {
-        "name": "Filtre 2 pa (brut)"
+        "name": "Filtre 2 : mesure de pression (brute)"
       },
       "filter2_lr": {
-        "name": "Filtre 2 lr (brut)"
+        "name": "Filtre 2 : durée de vie restante (brute)"
+      },
+      "runtime_total": {
+        "name": "Durée de fonctionnement de la VMC"
+      },
+      "filter_interval": {
+        "name": "Intervalle filtres (mois)"
+      },
+      "filter_last_changed": {
+        "name": "Dernier changement des filtres"
+      },
+      "filter_next_due": {
+        "name": "Prochaine échéance des filtres"
+      },
+      "service_interval": {
+        "name": "Intervalle entretien (mois)"
+      },
+      "service_last_done": {
+        "name": "Dernier entretien"
+      },
+      "service_next_due": {
+        "name": "Prochain entretien"
+      },
+      "filter1_type": {
+        "name": "Type du filtre 1"
+      },
+      "filter2_type": {
+        "name": "Type du filtre 2"
+      },
+      "profile_low": {
+        "name": "Nom du profil Réduit"
+      },
+      "profile_normal": {
+        "name": "Nom du profil Normal"
+      },
+      "profile_boost": {
+        "name": "Nom du profil Boost"
+      },
+      "profile_purge": {
+        "name": "Nom du profil Purge"
+      },
+      "bypass_state": {
+        "name": "Bypass été : état actuel",
+        "state": {
+          "inactive": "Inactif",
+          "normal": "Normal",
+          "evening_fresh": "Rafraîchissement du soir",
+          "night_fresh": "Rafraîchissement nocturne",
+          "frost_protection": "Protection antigel",
+          "manual_open": "Ouverture manuelle",
+          "unknown_code": "Code non reconnu"
+        }
+      },
+      "bypass_open": {
+        "name": "Bypass été : ouverture"
+      },
+      "bypass_position": {
+        "name": "Bypass été : position"
+      },
+      "bypass_configured_mode": {
+        "name": "Bypass été : mode configuré",
+        "state": {
+          "off": "Désactivé",
+          "normal": "Normal",
+          "evening_fresh": "Rafraîchissement du soir",
+          "night_fresh": "Rafraîchissement nocturne",
+          "unknown_code": "Code non reconnu"
+        }
+      },
+      "bypass_fan_mode": {
+        "name": "Bypass été : mode de ventilation configuré",
+        "state": {
+          "off": "Arrêt (état reçu)",
+          "low": "Réduit",
+          "normal": "Normal",
+          "boost": "Boost",
+          "purge": "Purge",
+          "maximum": "Maximum",
+          "unknown_code": "Mode non reconnu"
+        }
+      },
+      "bypass_outdoor_threshold": {
+        "name": "Bypass été : seuil extérieur"
+      },
+      "bypass_indoor_threshold": {
+        "name": "Bypass été : seuil intérieur"
+      },
+      "frost_state": {
+        "name": "Protection antigel : état",
+        "state": {
+          "inactive": "Inactif",
+          "airflow_imbalance": "Déséquilibrage des débits",
+          "bypass": "Bypass",
+          "preheater_balanced": "Préchauffage équilibré",
+          "preheater_imbalanced": "Préchauffage déséquilibré",
+          "unknown_code": "Code non reconnu"
+        }
+      },
+      "frost_preheater_power": {
+        "name": "Antigel : puissance préchauffage (brute)"
+      },
+      "frost_preheater_usage": {
+        "name": "Antigel : utilisation préchauffage (brute)"
+      },
+      "frost_configuration": {
+        "name": "Protection antigel : configuration (brute)"
+      },
+      "zone_temperature": {
+        "name": "Zone {index} : température"
+      },
+      "zone_humidity": {
+        "name": "Zone {index} : humidité"
+      },
+      "zone_co2": {
+        "name": "Zone {index} : CO₂ (brut)"
+      },
+      "zone_voc": {
+        "name": "Zone {index} : COV (brut)"
+      },
+      "zone_battery": {
+        "name": "Zone {index} : batterie (brute)"
+      },
+      "zone_signal": {
+        "name": "Zone {index} : signal radio (brut)"
+      },
+      "zone_status": {
+        "name": "Zone {index} : état (brut)"
+      },
+      "zone_damper": {
+        "name": "Zone {index} : position du clapet (brute)"
+      },
+      "zone_switch": {
+        "name": "Zone {index} : contact",
+        "state": {
+          "on": "Actif",
+          "off": "Inactif"
+        }
+      },
+      "sn_temperature": {
+        "name": "Sonde {index} : température"
+      },
+      "sn_humidity": {
+        "name": "Sonde {index} : humidité"
+      },
+      "sn_co2": {
+        "name": "Sonde {index} : CO₂ (brut)"
+      },
+      "sn_voc": {
+        "name": "Sonde {index} : COV (brut)"
+      },
+      "sn_battery": {
+        "name": "Sonde {index} : batterie (brute)"
+      },
+      "sn_signal": {
+        "name": "Sonde {index} : signal radio (brut)"
+      },
+      "sn_status": {
+        "name": "Sonde {index} : état (brut)"
+      },
+      "sn_damper": {
+        "name": "Sonde {index} : position du clapet (brute)"
+      },
+      "sn_switch": {
+        "name": "Sonde {index} : contact",
+        "state": {
+          "on": "Actif",
+          "off": "Inactif"
+        }
+      },
+      "override_requested_duration": {
+        "name": "Durée de dérogation reçue"
+      },
+      "override_remaining": {
+        "name": "Dérogation restante (horloge VMC)"
       }
     },
     "button": {
@@ -178,6 +408,43 @@
       },
       "maximum_15_unverified": {
         "name": "Mode Maximum 15 min (à valider)"
+      },
+      "apply_override": {
+        "name": "Appliquer la dérogation"
+      },
+      "cancel_selected_override": {
+        "name": "Annuler la dérogation sélectionnée (à valider)"
+      }
+    },
+    "select": {
+      "override_mode": {
+        "name": "Mode de la dérogation",
+        "state": {
+          "low": "Réduit",
+          "normal": "Normal",
+          "boost": "Boost",
+          "purge": "Purge",
+          "maximum": "Maximum"
+        }
+      },
+      "override_duration": {
+        "name": "Durée de la dérogation",
+        "state": {
+          "15": "15 min",
+          "30": "30 min",
+          "60": "1 h",
+          "120": "2 h",
+          "240": "4 h",
+          "480": "8 h"
+        }
+      }
+    },
+    "binary_sensor": {
+      "filter_clean_overdue": {
+        "name": "Filtre à nettoyer/remplacer (W-12)"
+      },
+      "service_overdue": {
+        "name": "Entretien en retard (W-13)"
       }
     }
   }

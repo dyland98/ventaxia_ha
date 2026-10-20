@@ -49,16 +49,16 @@
   "entity": {
     "sensor": {
       "t1": {
-        "name": "Temperature T1"
+        "name": "Outdoor intake air (T1)"
       },
       "t2": {
-        "name": "Temperature T2"
+        "name": "Supply air (T2)"
       },
       "t3": {
-        "name": "Temperature T3"
+        "name": "Extract air (T3)"
       },
       "t4": {
-        "name": "Temperature T4"
+        "name": "Exhaust air (T4)"
       },
       "erh": {
         "name": "Humidity ERH"
@@ -67,97 +67,327 @@
         "name": "Humidity IRH"
       },
       "eco2": {
-        "name": "io/eco2/val (bruto)"
+        "name": "CO₂ ECO2 (raw value)"
       },
       "ico2": {
-        "name": "io/ico2/val (bruto)"
+        "name": "CO₂ ICO2 (raw value)"
       },
       "zone2_co2": {
-        "name": "zone/2/co2 (bruto)"
+        "name": "Zone 2 CO₂ (raw value)"
       },
       "zone2_t": {
-        "name": "zone/2/t (bruto)"
+        "name": "Zone 2 temperature (raw value)"
       },
       "sn1_rh": {
-        "name": "sn/1/rh (bruto)"
+        "name": "Sensor 1 humidity (raw value)"
       },
       "power": {
         "name": "Power"
       },
       "vent_cm": {
-        "name": "vent/cm (bruto)"
+        "name": "Control mode",
+        "state": {
+          "fixed_percentage": "Fixed percentage",
+          "constant_volume": "Constant volume",
+          "constant_pressure": "Constant pressure",
+          "unknown_code": "Unrecognized code"
+        }
       },
       "vent_saq": {
-        "name": "vent/saq (bruto)"
+        "name": "Air quality",
+        "state": {
+          "good": "Good",
+          "average": "Average",
+          "poor": "Poor",
+          "unknown_code": "Unrecognized code"
+        }
       },
       "vent_maxaf": {
-        "name": "vent/maxaf (bruto)"
+        "name": "Maximum airflow (raw value)"
       },
       "faults": {
-        "name": "Faults (raw value)"
+        "name": "Faults",
+        "state": {
+          "clear": "Clear",
+          "active": "Active"
+        }
       },
       "warnings": {
-        "name": "Warnings (raw value)"
+        "name": "Warnings",
+        "state": {
+          "clear": "Clear",
+          "filter_clean_overdue": "Filter cleaning/replacement overdue",
+          "service_overdue": "Service overdue",
+          "filter_and_service_overdue": "Filter and service overdue",
+          "other": "Other warning active"
+        }
       },
       "notifications": {
-        "name": "Notifications (raw value)"
+        "name": "Notifications",
+        "state": {
+          "clear": "Clear",
+          "active": "Active"
+        }
       },
       "mode": {
-        "name": "Mode (raw ps)"
+        "name": "Current ventilation mode",
+        "state": {
+          "off": "Off (reported)",
+          "low": "Low",
+          "normal": "Normal",
+          "boost": "Boost",
+          "purge": "Purge",
+          "maximum": "Maximum",
+          "unknown_code": "Unrecognized mode"
+        }
       },
       "override": {
-        "name": "Override (raw ot)"
+        "name": "Override source",
+        "state": {
+          "none": "No override",
+          "zonal_schedule": "Zonal schedule",
+          "external_co2": "External CO₂ sensor",
+          "external_humidity": "External humidity sensor",
+          "zonal_co2": "Zonal CO₂ sensor",
+          "zonal_voc": "Zonal VOC sensor",
+          "zonal_humidity": "Zonal humidity sensor",
+          "summer_bypass": "Summer bypass",
+          "zonal_switch": "Zonal switch input",
+          "user_override": "User override",
+          "silent_hours": "Silent hours",
+          "frost_protection": "Frost protection",
+          "damper": "Damper",
+          "filter_calibration": "Filter calibration",
+          "shutdown": "Shutdown",
+          "commissioning": "Commissioning command",
+          "standby": "Standby",
+          "diagnostic": "Diagnostic",
+          "unknown_code": "Unrecognized code"
+        }
       },
       "rssi": {
-        "name": "Wi-Fi RSSI"
+        "name": "Wi-Fi signal"
       },
       "afs_rpm": {
-        "name": "AFS rpm"
+        "name": "Supply fan speed"
       },
       "afs_pwr": {
-        "name": "AFS pwr"
+        "name": "Supply motor power"
       },
       "afs_fm": {
-        "name": "AFS fm"
+        "name": "Supply measured airflow"
       },
       "afs_fd": {
-        "name": "AFS fd"
+        "name": "Supply target (raw)"
       },
       "afs_pwm": {
-        "name": "AFS PWM (bruto)"
+        "name": "Supply motor PWM command (raw)"
       },
       "afs_dr": {
-        "name": "AFS dr (bruto)"
+        "name": "Supply motor runtime"
       },
       "afe_rpm": {
-        "name": "AFE rpm"
+        "name": "Extract fan speed"
       },
       "afe_pwr": {
-        "name": "AFE pwr"
+        "name": "Extract motor power"
       },
       "afe_fm": {
-        "name": "AFE fm"
+        "name": "Extract measured airflow"
       },
       "afe_fd": {
-        "name": "AFE fd"
+        "name": "Extract target (raw)"
       },
       "afe_pwm": {
-        "name": "AFE PWM (bruto)"
+        "name": "Extract motor PWM command (raw)"
       },
       "afe_dr": {
-        "name": "AFE dr (bruto)"
+        "name": "Extract motor runtime"
       },
       "filter1_pa": {
-        "name": "Filter 1 pa (raw)"
+        "name": "Filter 1 pressure reading (raw)"
       },
       "filter1_lr": {
-        "name": "Filter 1 lr (raw)"
+        "name": "Filter 1 remaining life (raw)"
       },
       "filter2_pa": {
-        "name": "Filter 2 pa (raw)"
+        "name": "Filter 2 pressure reading (raw)"
       },
       "filter2_lr": {
-        "name": "Filter 2 lr (raw)"
+        "name": "Filter 2 remaining life (raw)"
+      },
+      "runtime_total": {
+        "name": "Unit runtime"
+      },
+      "filter_interval": {
+        "name": "Filter interval (months)"
+      },
+      "filter_last_changed": {
+        "name": "Last filter change"
+      },
+      "filter_next_due": {
+        "name": "Next filter due date"
+      },
+      "service_interval": {
+        "name": "Service interval (months)"
+      },
+      "service_last_done": {
+        "name": "Last service"
+      },
+      "service_next_due": {
+        "name": "Next service due date"
+      },
+      "filter1_type": {
+        "name": "Filter 1 type"
+      },
+      "filter2_type": {
+        "name": "Filter 2 type"
+      },
+      "profile_low": {
+        "name": "Low profile name"
+      },
+      "profile_normal": {
+        "name": "Normal profile name"
+      },
+      "profile_boost": {
+        "name": "Boost profile name"
+      },
+      "profile_purge": {
+        "name": "Purge profile name"
+      },
+      "bypass_state": {
+        "name": "Summer bypass state",
+        "state": {
+          "inactive": "Inactive",
+          "normal": "Normal",
+          "evening_fresh": "Evening fresh",
+          "night_fresh": "Night fresh",
+          "frost_protection": "Frost protection",
+          "manual_open": "Manual open",
+          "unknown_code": "Unknown code"
+        }
+      },
+      "bypass_open": {
+        "name": "Summer bypass opening"
+      },
+      "bypass_position": {
+        "name": "Summer bypass position"
+      },
+      "bypass_configured_mode": {
+        "name": "Summer bypass configured mode",
+        "state": {
+          "off": "Off",
+          "normal": "Normal",
+          "evening_fresh": "Evening fresh",
+          "night_fresh": "Night fresh",
+          "unknown_code": "Unknown code"
+        }
+      },
+      "bypass_fan_mode": {
+        "name": "Summer bypass configured fan mode",
+        "state": {
+          "off": "Off (reported)",
+          "low": "Low",
+          "normal": "Normal",
+          "boost": "Boost",
+          "purge": "Purge",
+          "maximum": "Maximum",
+          "unknown_code": "Unrecognized mode"
+        }
+      },
+      "bypass_outdoor_threshold": {
+        "name": "Summer bypass outdoor threshold"
+      },
+      "bypass_indoor_threshold": {
+        "name": "Summer bypass indoor threshold"
+      },
+      "frost_state": {
+        "name": "Frost protection state",
+        "state": {
+          "inactive": "Inactive",
+          "airflow_imbalance": "Airflow imbalance",
+          "bypass": "Bypass",
+          "preheater_balanced": "Preheater balanced",
+          "preheater_imbalanced": "Preheater imbalanced",
+          "unknown_code": "Unknown code"
+        }
+      },
+      "frost_preheater_power": {
+        "name": "Frost preheater power (raw)"
+      },
+      "frost_preheater_usage": {
+        "name": "Frost preheater usage (raw)"
+      },
+      "frost_configuration": {
+        "name": "Frost protection configuration (raw)"
+      },
+      "zone_temperature": {
+        "name": "Zone {index} temperature"
+      },
+      "zone_humidity": {
+        "name": "Zone {index} humidity"
+      },
+      "zone_co2": {
+        "name": "Zone {index} CO₂ (raw)"
+      },
+      "zone_voc": {
+        "name": "Zone {index} VOC (raw)"
+      },
+      "zone_battery": {
+        "name": "Zone {index} battery (raw)"
+      },
+      "zone_signal": {
+        "name": "Zone {index} radio signal (raw)"
+      },
+      "zone_status": {
+        "name": "Zone {index} status (raw)"
+      },
+      "zone_damper": {
+        "name": "Zone {index} damper position (raw)"
+      },
+      "zone_switch": {
+        "name": "Zone {index} switch",
+        "state": {
+          "on": "On",
+          "off": "Off"
+        }
+      },
+      "sn_temperature": {
+        "name": "Sensor {index} temperature"
+      },
+      "sn_humidity": {
+        "name": "Sensor {index} humidity"
+      },
+      "sn_co2": {
+        "name": "Sensor {index} CO₂ (raw)"
+      },
+      "sn_voc": {
+        "name": "Sensor {index} VOC (raw)"
+      },
+      "sn_battery": {
+        "name": "Sensor {index} battery (raw)"
+      },
+      "sn_signal": {
+        "name": "Sensor {index} radio signal (raw)"
+      },
+      "sn_status": {
+        "name": "Sensor {index} status (raw)"
+      },
+      "sn_damper": {
+        "name": "Sensor {index} damper position (raw)"
+      },
+      "sn_switch": {
+        "name": "Sensor {index} switch",
+        "state": {
+          "on": "On",
+          "off": "Off"
+        }
+      },
+      "override_requested_duration": {
+        "name": "Reported override duration"
+      },
+      "override_remaining": {
+        "name": "Override remaining (device clock)"
       }
     },
     "button": {
@@ -178,6 +408,43 @@
       },
       "maximum_15_unverified": {
         "name": "Modo Maximum 15 min (por validar)"
+      },
+      "apply_override": {
+        "name": "Apply override"
+      },
+      "cancel_selected_override": {
+        "name": "Cancel selected override (to validate)"
+      }
+    },
+    "select": {
+      "override_mode": {
+        "name": "Override mode",
+        "state": {
+          "low": "Low",
+          "normal": "Normal",
+          "boost": "Boost",
+          "purge": "Purge",
+          "maximum": "Maximum"
+        }
+      },
+      "override_duration": {
+        "name": "Override duration",
+        "state": {
+          "15": "15 min",
+          "30": "30 min",
+          "60": "1 h",
+          "120": "2 h",
+          "240": "4 h",
+          "480": "8 h"
+        }
+      }
+    },
+    "binary_sensor": {
+      "filter_clean_overdue": {
+        "name": "Filter cleaning/replacement overdue (W-12)"
+      },
+      "service_overdue": {
+        "name": "Service overdue (W-13)"
       }
     }
   }

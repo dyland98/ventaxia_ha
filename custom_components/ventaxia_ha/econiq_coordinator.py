@@ -12,13 +12,17 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from .const import DOMAIN
 from .econiq import (
     CONF_PREFIX,
+    ECONIQ_DURATIONS,
     ECONIQ_MODE_IDS,
+    ECONIQ_SELECT_MODES,
     EconiqCache,
     boost_payload,
+    cancel_payload,
     create_client,
     create_tls_context,
     mode_payload,
 )
+from .econiq_topics import READ_TOPICS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +41,8 @@ class EconiqCoordinator:
         self._task = None
         self._ready = asyncio.Event()
         self._context = None
+        self.selected_mode = "boost"
+        self.selected_duration = 15
 
     @property
     def device_info(self):
@@ -83,6 +89,19 @@ class EconiqCoordinator:
                     self.data, f"ha-econiq-{self.entry.entry_id}", self._context
                 ) as client:
                     await client.subscribe(self.cache.prefix + "#", qos=0)
+                    # Some firmware responds to explicit read subscriptions only.
+                    # These are SUBSCRIBE packets, never writes or resets.
+                    try:
+                        await client.subscribe(
+                            [(self.cache.prefix + topic, 0) for topic in READ_TOPICS],
+                            timeout=5,
+                        )
+                    except aiomqtt.MqttError:
+                        # Optional telemetry must not prevent the working base
+                        # integration from receiving its wildcard push updates.
+                        _LOGGER.warning(
+                            "Econiq additional read subscriptions unavailable; using push telemetry"
+                        )
                     self._client = client
                     # Require fresh, allowlisted telemetry after every connection.
                     self.cache.values.clear()
@@ -113,9 +132,31 @@ class EconiqCoordinator:
 
     async def async_set_mode(self, mode: str, duration_minutes: int = 15):
         """Send an explicitly requested timed mode command."""
-        if mode not in ECONIQ_MODE_IDS or mode == "boost":
+        if mode not in ECONIQ_MODE_IDS:
             raise HomeAssistantError("Unsupported Econiq mode")
         await self._async_publish_command(mode_payload(mode, duration_minutes))
+
+    def select_override(self, *, mode=None, duration=None):
+        """Prepare a local request without sending a device command."""
+        if mode is not None:
+            if mode not in ECONIQ_SELECT_MODES:
+                raise ValueError("Unsupported mode selection")
+            self.selected_mode = mode
+        if duration is not None:
+            if (
+                isinstance(duration, bool)
+                or not isinstance(duration, int)
+                or duration not in ECONIQ_DURATIONS
+            ):
+                raise ValueError("Unsupported override duration")
+            self.selected_duration = duration
+        self._notify_update()
+
+    async def async_apply_override(self):
+        await self.async_set_mode(self.selected_mode, self.selected_duration)
+
+    async def async_cancel_selected_override(self):
+        await self._async_publish_command(cancel_payload(self.selected_mode))
 
     async def _async_publish_command(self, payload: str):
         if not self.available or self._client is None:

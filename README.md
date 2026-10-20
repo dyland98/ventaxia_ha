@@ -93,22 +93,44 @@ The hexadecimal PSK is decoded to bytes, never encoded as the literal hex text.
 The key is masked in the form, stored in HA config entry storage and excluded
 from exported diagnostics. Protect HA backups containing config entries.
 
-Temperatures T1–T4 retain neutral names. Airflow `fm`/`fd` and filter `pa`/`lr`
-values have no assumed units. Warnings/faults are raw values, not counts.
-Mode shows raw `vent/caf.ps`; only `3` (Boost) is confirmed by the supplied traces.
-Override attributes preserve `trem` without interpreting its time semantics.
-Nonfinite or absent measurements become unknown, never zero. Connection loss
-makes entities unavailable; a reconnect waits for fresh recognized telemetry.
+Use **Override mode** (Low, Normal, Boost, Purge, Maximum), **Override duration**
+(15 min, 30 min, 1 h, 2 h, 4 h, 8 h), then **Apply override**. The lists prepare a
+request locally and restore their choices after restart without sending anything.
+Only Apply publishes `gtm` and `treq` to `<prefix>/vent/uo`, QoS 0, retain false.
+The current-mode sensor reports telemetry independently; Maximum can accelerate
+the fans while the device/app still reports the previous mode.
 
-The **Boost 15 minutes** button sends `{"gtm":3,"treq":"00:15:00"}` to
-`<prefix>/vent/uo`, QoS 0, retain false. The **Cancel Boost (to validate)** button
-is disabled by default; enable it deliberately to test the APK-derived
-`{"gtm":3,"treq":"00:00:00"}`. Neither button changes the displayed mode until
-telemetry confirms it. No commands are sent on startup or reconnection.
-Timed Econiq buttons for LOW (1), NORMAL (2), PURGE (4) and MAXIMUM (5) are also
-provided for 15 minutes based on the supplied APK enum. They are disabled by
-default and marked to validate because only Boost has been confirmed on hardware.
-OFF (0) is intentionally not exposed because it could stop ventilation.
+The supplied Android APK was inspected. Temperatures now identify intake (T1),
+supply (T2), extract (T3) and exhaust (T4). AFS/AFE identify the supply/extract
+motors. Measured airflow `fm` uses L/s and motor runtime `dr` is shown in hours
+(with raw seconds in attributes). Demand `fd`, filter readings and humidity
+channel direction remain conservative where the app's semantics are ambiguous.
+Current mode, override source, control mode and air quality have translated states.
+The user's app confirmed W-12 (filter cleaning/replacement overdue) and W-13
+(service overdue), matching warning mask 6144; these now have readable states and
+individual maintenance indicators. Other bits remain explicitly unidentified.
+Absent/nonfinite data remain unknown; disconnects make entities unavailable.
+
+The fixed **Boost 15 minutes** shortcut remains available. **Cancel Boost (to
+validate)** stays disabled by default and sends the APK-derived
+`{"gtm":3,"treq":"00:00:00"}` when explicitly enabled and pressed. Existing fixed
+15-minute mode buttons retain their identifiers for compatibility. No commands
+are sent automatically on startup, restored selections or reconnect.
+
+Additional read-only entities expose reported profile names/targets, total runtime,
+filter types, filter/service intervals and dates, next due dates, summer bypass
+and frost protection. Zones (1–15) and remote sensors (1–31) are discovered from
+received channel messages; active-device lists are honored when published.
+Override requested/remaining duration uses the device's own clock when available.
+**Cancel selected override** cancels the mode chosen in the list, with zero
+requested time. Cancellation still requires hardware validation, especially Maximum.
+Filter/service counters remain read-only, as requested; no resets or calibration
+controls are exposed. Missing firmware topics remain unknown.
+
+See [the APK findings, controls and implemented telemetry](doc/ECONIQ_APK.md)
+for evidence, limits and manual validation. The user reports that the base
+integration works; these additions still need installation and device testing.
+
 The bundled Kinetic dashboard card and services are for Kinetic entries only.
 
 ## Kinetic configuration

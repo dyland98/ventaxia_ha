@@ -114,7 +114,7 @@ def test_timed_mode_payloads(mode, mode_id):
     assert "off" not in ECONIQ_MODE_IDS
 
 
-@pytest.mark.parametrize("duration", [0, -1, 61, True])
+@pytest.mark.parametrize("duration", [0, -1, 61, 481, True, 15.0, "15"])
 def test_mode_payload_rejects_unsafe_duration(duration):
     with pytest.raises(ValueError):
         mode_payload("low", duration)
@@ -154,7 +154,8 @@ async def test_reconnect_clean_shutdown_and_commands(hass, econiq_data, fake_cli
     ) as factory:
         await coordinator.async_start()
         assert coordinator.available
-        fake_client.subscribe.assert_awaited_once_with("TEST-UNIT/#", qos=0)
+        fake_client.subscribe.assert_any_await("TEST-UNIT/#", qos=0)
+        assert fake_client.subscribe.await_count == 2
         fake_client.publish.assert_not_awaited()
         await coordinator.async_boost()
         fake_client.publish.assert_awaited_with(
@@ -233,7 +234,9 @@ async def test_entity_unknown_and_raw_values(hass, econiq_data):
     assert sensor.native_value == 12.3
     warnings = EconiqSensor(coordinator, "warnings", "mdet/warns", None, None)
     coordinator.cache.update("TEST-UNIT/mdet/warns", b"6144")
-    assert warnings.native_value == 6144
+    assert warnings.native_value == "filter_and_service_overdue"
+    assert warnings.extra_state_attributes["raw_value"] == 6144
+    assert warnings.extra_state_attributes["active_bits"] == [11, 12]
     assert warnings.native_unit_of_measurement is None
     assert (
         EconiqBoostButton(coordinator, cancel=True).entity_registry_enabled_default

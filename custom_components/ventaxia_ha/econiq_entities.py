@@ -8,7 +8,18 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.helpers.entity import Entity, EntityCategory
 
-# key, topic, unit, device class. fm/fd and filter values deliberately have no unit.
+from .econiq_status import (
+    ALARM_TOPICS,
+    CONFIRMED_WARNING_BITS,
+    ENUM_TOPICS,
+    WARNING_STATES,
+    decode_alarm,
+    enum_state,
+    warning_state,
+)
+from .econiq_topics import channel_present
+
+# key, topic, native unit, device class. fd and filter readings keep unknown units.
 SENSORS = [
     *((f"t{i}", f"io/t{i}", "°C", SensorDeviceClass.TEMPERATURE) for i in range(1, 5)),
     ("erh", "io/erh/val", "%", SensorDeviceClass.HUMIDITY),
@@ -29,10 +40,10 @@ SENSORS = [
         for field, unit, cls in (
             ("rpm", "rpm", None),
             ("pwr", "W", SensorDeviceClass.POWER),
-            ("fm", None, None),
+            ("fm", "L/s", SensorDeviceClass.VOLUME_FLOW_RATE),
             ("fd", None, None),
             ("pwm", None, None),
-            ("dr", None, None),
+            ("dr", "h", SensorDeviceClass.DURATION),
         )
     ),
     *(
@@ -79,12 +90,36 @@ class EconiqSensor(EconiqEntity, SensorEntity):
         self.topic = topic
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class
+        if topic in ENUM_TOPICS:
+            self._attr_device_class = SensorDeviceClass.ENUM
+            self._attr_options = [*ENUM_TOPICS[topic].values(), "unknown_code"]
+        if topic in set(ALARM_TOPICS.values()):
+            self._attr_device_class = SensorDeviceClass.ENUM
+            self._attr_options = (
+                WARNING_STATES if topic == "mdet/warns" else ["clear", "active"]
+            )
+        if key in {
+            "afs_dr",
+            "afe_dr",
+            "afs_pwm",
+            "afe_pwm",
+            "vent_cm",
+            "vent_saq",
+            "vent_maxaf",
+        }:
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
         if unit:
             self._attr_state_class = SensorStateClass.MEASUREMENT
         if key in {"faults", "warnings", "notifications", "override"} or key.startswith(
             "filter"
         ):
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def available(self):
+        return self.coordinator.available and channel_present(
+            self.coordinator.cache.values, self.topic
+        )
 
     @property
     def native_value(self):
@@ -96,19 +131,54 @@ class EconiqSensor(EconiqEntity, SensorEntity):
                 value = value.get("rssi")
             else:
                 value = value.get("ot")
+        if self.topic in ENUM_TOPICS:
+            return enum_state(value, ENUM_TOPICS[self.topic])
+        if self.topic == "mdet/warns":
+            return warning_state(value)
+        for topic in ALARM_TOPICS.values():
+            if self.topic == topic:
+                decoded = decode_alarm(value)
+                if decoded is None:
+                    return None
+                return "active" if decoded["raw_value"] else "clear"
         if (
             value is None
             or isinstance(value, bool)
             or not isinstance(value, (int, float))
         ):
             return None
+        if self.topic.endswith("/dr"):
+            return round(value / 3600, 2) if value >= 0 else None
+        if self.topic.endswith("/fm") and value < 0:
+            return None
         return value
 
     @property
     def extra_state_attributes(self):
         value = self.coordinator.cache.values.get(self.topic)
+        if self.topic.endswith("/dr"):
+            return {"raw_seconds": value}
+        for topic in ALARM_TOPICS.values():
+            if self.topic == topic:
+                decoded = decode_alarm(value)
+                if decoded is not None and topic == "mdet/warns":
+                    decoded["confirmed_codes"] = [
+                        name
+                        for bit, name in CONFIRMED_WARNING_BITS.items()
+                        if bit in decoded["active_bits"]
+                    ]
+                    decoded["unmapped_bits"] = (int(value) & 0xFFFFFFFF) & ~6144
+                return decoded
+        if self.topic in ENUM_TOPICS and not isinstance(value, dict):
+            return {"raw_value": value}
         if self.topic in {"vent/caf", "vent/cor"} and isinstance(value, dict):
-            return dict(value)
+            attributes = dict(value)
+            if self.topic == "vent/caf" and value.get("ps") in (1, 2, 3, 4):
+                profile = self.coordinator.cache.values.get(
+                    f"vent/pf{int(value['ps'])}", {}
+                )
+                attributes["profile_name"] = profile.get("name")
+            return attributes
         return None
 
 

@@ -9,6 +9,13 @@ import ssl
 
 import aiomqtt
 
+from .econiq_topics import (
+    EXTRA_JSON_TOPICS,
+    EXTRA_NUMERIC_TOPICS,
+    EXTRA_TEXT_TOPICS,
+    channel_kind,
+)
+
 CONF_DEVICE_TYPE = "device_type"
 CONF_PREFIX = "mqtt_prefix"
 ECONIQ = "econiq"
@@ -17,6 +24,10 @@ KINETIC = "kinetic"
 # APK-reported SDK modes. OFF is intentionally excluded to avoid stopping
 # ventilation; non-Boost modes have not yet been validated on hardware.
 ECONIQ_MODE_IDS = {"low": 1, "normal": 2, "boost": 3, "purge": 4, "maximum": 5}
+# The four app modes plus Maximum, whose fan response was confirmed by the user.
+# Maximum may leave vent/caf.ps unchanged; never infer confirmation from a write.
+ECONIQ_SELECT_MODES = ("low", "normal", "boost", "purge", "maximum")
+ECONIQ_DURATIONS = (15, 30, 60, 120, 240, 480)
 
 
 class PskUnavailableError(RuntimeError):
@@ -132,14 +143,27 @@ class EconiqCache:
         topic = topic[len(self.prefix) :]
         try:
             text = payload.decode("utf-8")
-            if topic in NUMERIC_TOPICS:
+            dynamic_kind = channel_kind(topic)
+            if (
+                topic in NUMERIC_TOPICS
+                or topic in EXTRA_NUMERIC_TOPICS
+                or dynamic_kind == "number"
+            ):
                 value = float(text)
                 value = value if math.isfinite(value) else None
-            elif topic in JSON_TOPICS:
+            elif (
+                topic in JSON_TOPICS
+                or topic in EXTRA_JSON_TOPICS
+                or dynamic_kind == "json"
+            ):
                 value = _finite(json.loads(text))
                 if not isinstance(value, dict):
                     return False
-            elif topic == "mdet/name":
+            elif dynamic_kind == "boolean":
+                if text.strip().lower() not in {"true", "false"}:
+                    return False
+                value = text.strip().lower() == "true"
+            elif topic == "mdet/name" or topic in EXTRA_TEXT_TOPICS:
                 value = text[:255]
             else:
                 return False
@@ -178,10 +202,23 @@ def mode_payload(mode: str, duration_minutes: int = 15) -> str:
     """Build a timed mode command; never expose OFF or persistent commands."""
     if mode not in ECONIQ_MODE_IDS:
         raise ValueError("Unsupported Econiq mode")
-    if isinstance(duration_minutes, bool) or not 1 <= duration_minutes <= 60:
-        raise ValueError("Mode duration must be between 1 and 60 minutes")
+    if (
+        isinstance(duration_minutes, bool)
+        or not isinstance(duration_minutes, int)
+        or duration_minutes not in ECONIQ_DURATIONS
+    ):
+        raise ValueError("Unsupported timed override duration")
     hours, minutes = divmod(duration_minutes, 60)
     duration = f"{hours:02d}:{minutes:02d}:00"
     return json.dumps(
         {"gtm": ECONIQ_MODE_IDS[mode], "treq": duration}, separators=(",", ":")
+    )
+
+
+def cancel_payload(mode: str) -> str:
+    """Cancel only the explicitly selected mode, matching the app's method."""
+    if mode not in ECONIQ_MODE_IDS:
+        raise ValueError("Unsupported Econiq mode")
+    return json.dumps(
+        {"gtm": ECONIQ_MODE_IDS[mode], "treq": "00:00:00"}, separators=(",", ":")
     )

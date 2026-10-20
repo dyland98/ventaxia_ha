@@ -13,6 +13,19 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
 
+    from .econiq import CONF_DEVICE_TYPE, ECONIQ
+    from .econiq_controls import EconiqOverrideSelect
+
+    if config_entry.data.get(CONF_DEVICE_TYPE) == ECONIQ:
+        coordinator = hass.data[DOMAIN][config_entry.entry_id]
+        async_add_entities(
+            [
+                EconiqOverrideSelect(coordinator, "override_mode"),
+                EconiqOverrideSelect(coordinator, "override_duration"),
+            ]
+        )
+        return
+
     coordinator: VentAxiaCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities([VentAxiaCommissionModeSelect(coordinator)])

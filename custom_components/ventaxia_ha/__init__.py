@@ -349,7 +349,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
         try:
             await hass.config_entries.async_forward_entry_setups(
-                entry, [Platform.SENSOR, Platform.BUTTON]
+                entry,
+                [
+                    Platform.SENSOR,
+                    Platform.BUTTON,
+                    Platform.SELECT,
+                    Platform.BINARY_SENSOR,
+                ],
             )
         except BaseException:
             await coordinator.async_stop()
@@ -476,7 +482,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload VentAxia config entry."""
     platforms = (
-        [Platform.SENSOR, Platform.BUTTON]
+        [Platform.SENSOR, Platform.BUTTON, Platform.SELECT, Platform.BINARY_SENSOR]
         if entry.data.get(CONF_DEVICE_TYPE) == ECONIQ
         else PLATFORMS
     )

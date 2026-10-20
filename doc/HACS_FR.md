@@ -55,13 +55,14 @@ modifier ces deux fichiers et documenter les changements avant de créer le tag.
 ```sh
 git add custom_components hacs.json README.md doc scripts tests setup.cfg requirements_test.txt .pre-commit-config.yaml .github
 git commit -m "Add Econiq backend and prepare fork HACS releases"
-git push -u origin feat/econiq-hacs
+git push origin main
 ```
 
-Créer une PR vers la branche par défaut **du fork dyland98**, attendre les tests,
-HACS et Hassfest, puis la fusionner dans ce fork. Ne pas choisir automatiquement
-le dépôt JosyBan comme cible de PR. Après fusion (remplacer `main` si la branche
-par défaut du fork porte un autre nom) :
+Le travail se fait désormais sur **le `main` du fork dyland98** à la demande de
+l’utilisateur. Vérifier `git branch --show-current` et `git remote -v` avant ces
+commandes : `origin` doit rester `https://github.com/dyland98/ventaxia_ha.git`.
+Ne pas créer de publication dans le dépôt JosyBan. Après le push de `main`, attendre
+les tests et contrôles GitHub avant de créer et pousser le tag explicitement :
 
 ```sh
 git switch main
@@ -143,25 +144,35 @@ redémarrer. Installer ensuite par HACS si l’on souhaite son suivi des mises �
 
 ## 4. Validation réelle à effectuer
 
+Les fonctions complémentaires (profils, compteurs, dates, bypass, antigel, zones,
+sondes et annulation sélectionnée) sont détaillées dans [ECONIQ_APK.md](ECONIQ_APK.md).
+Les compteurs restent en lecture seule, conformément au choix de l’utilisateur.
+
+
 Les tests automatisés utilisent un transport simulé, sans accès à la VMC.
-L’installation HACS et le comportement de cette nouvelle implémentation sur votre
-appareil restent à tester. Les essais précédents fournis valident le protocole
-et l’activation du Boost, pas ce nouveau code.
+L’utilisateur rapporte désormais que l’intégration de base fonctionne sur son
+appareil. Les nouveaux contrôles et conversions décrits dans `ECONIQ_APK.md`
+restent à installer et tester. Cela ne constitue pas une validation HACS par l’agent.
 
 - Fermer complètement l’application mobile. Observer T1–T4, ERH/IRH, RPM, puissance
   et RSSI pendant plusieurs minutes. Comparer les données à une lecture de référence.
 - Vérifier qu’un message partiel n’efface pas les autres capteurs, que `nan`/`inf`
   deviennent inconnus et qu’aucune valeur absente n’est changée en zéro.
-- Les valeurs `fm`, `fd`, `pa`, `lr` restent sans unité supposée. Le masque `6144`
-  n’est pas présenté comme un nombre d’avertissements. T1–T4 ne sont pas renommées
-  intérieur/extérieur. `trem` reste un attribut brut.
+- Les mesures `fm` sont en L/s et les durées moteur `dr` sont affichées en heures,
+  selon les conversions retrouvées dans l’APK. `fd`, `pa`, `lr` restent sans unité
+  supposée. Les sondes T1–T4 ont les noms retrouvés dans l’APK. `trem` reste brut.
+  Le masque `6144` correspond aux alertes W-12 et W-13 confirmées par l’utilisateur,
+  jamais à un nombre d’avertissements.
 - Appuyer une fois sur **Boost 15 minutes** : vérifier les messages `vent/caf`
   (`ps: 3`), `vent/cor` et la montée des RPM. L’envoi seul ne confirme pas le Boost.
-- Les commandes **Low**, **Normal**, **Purge** et **Maximum** sont déduites de
-  l’énumération APK, demandent 15 min et sont désactivées par défaut. Cette durée
-  et ces commandes sont à confirmer sur l’appareil. Les activer une par une dans
-  le registre des entités pour les valider. Seul Boost est confirmé.
-  Le mode OFF n’est pas exposé afin d’éviter un arrêt de la ventilation.
+- Choisir **Mode de la dérogation**, **Durée de la dérogation**, puis **Appliquer
+  la dérogation**. Les choix sont restaurés sans commande au redémarrage. Les
+  anciens boutons de 15 min restent disponibles pour compatibilité. L’utilisateur
+  confirme la réaction physique de Maximum, bien que le mode publié puisse rester
+  celui d’avant : ne pas confondre commande demandée et mode confirmé.
+  Voir [le guide des commandes et les constats APK](ECONIQ_APK.md) pour les durées
+  et les fonctions manquantes. Les nouveaux contrôles restent à tester sur HA.
+  Le mode OFF n’est pas exposé.
 - Activer volontairement l’entité désactivée **Annuler Boost (à valider)**, puis
   tester son bouton. La commande est déduite de l’APK et doit encore être validée
   sur l’appareil. Vérifier le retour de l’état et des ventilateurs. Ne pas annoncer
@@ -180,7 +191,8 @@ et l’activation du Boost, pas ce nouveau code.
 ## 5. Recevoir les prochaines mises à jour
 
 Pour chaque version, incrémenter manifeste et pyproject, exécuter les contrôles,
-fusionner dans le fork puis pousser explicitement le tag correspondant. Une
+pousser les changements validés vers le `main` du fork puis pousser explicitement
+le tag correspondant. Une
 modification locale ou un simple push de branche ne crée aucune release stable.
 HACS doit conserver uniquement `dyland98/ventaxia_ha` pour ce domaine. Actualiser
 les informations du dépôt dans HACS, installer la mise à jour proposée, puis

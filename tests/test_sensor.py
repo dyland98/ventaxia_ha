@@ -29,13 +29,16 @@ async def test_econiq_platforms(hass, econiq_data, fake_client):
         hass.config_entries, "async_forward_entry_setups", new=AsyncMock()
     ) as forward:
         assert await async_setup_entry(hass, entry)
-        forward.assert_awaited_once_with(entry, [Platform.SENSOR, Platform.BUTTON])
+        forward.assert_awaited_once_with(
+            entry,
+            [Platform.SENSOR, Platform.BUTTON, Platform.SELECT, Platform.BINARY_SENSOR],
+        )
         sensors = []
         buttons = []
         await setup_sensors(hass, entry, lambda entities: sensors.extend(entities))
         await setup_buttons(hass, entry, lambda entities: buttons.extend(entities))
         assert len(sensors) > 20 and all(isinstance(s, EconiqSensor) for s in sensors)
-        assert len(buttons) == 6
+        assert len(buttons) == 8
         assert sum(isinstance(button, EconiqBoostButton) for button in buttons) == 2
         assert sum(isinstance(button, EconiqModeButton) for button in buttons) == 4
         assert len({s.unique_id for s in sensors}) == len(sensors)
