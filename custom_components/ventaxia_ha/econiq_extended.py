@@ -213,6 +213,9 @@ class EconiqExtendedSensor(EconiqSensor):
         super().__init__(
             coordinator, reading.key, reading.topic, reading.unit, reading.device_class
         )
+        # Fields sharing a topic can have a different type from the parent enum.
+        self._attr_device_class = reading.device_class
+        self._attr_options = None
         self.reading = reading
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
         if reading.states:

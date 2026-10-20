@@ -331,3 +331,26 @@ async def test_broker_that_drops_additional_subscriptions_stays_connected(
         finally:
             await c.async_stop()
         assert fake_client.closed
+
+
+async def test_override_duration_sensor_types(hass, econiq_data):
+    """Numeric duration fields must not inherit the vent/cor enum device class."""
+    from homeassistant.components.sensor import SensorDeviceClass
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.ventaxia_ha.econiq_coordinator import EconiqCoordinator
+    from custom_components.ventaxia_ha.econiq_extended import (
+        READINGS,
+        EconiqExtendedSensor,
+    )
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data=econiq_data, unique_id="econiq:TEST-UNIT"
+    )
+    coordinator = EconiqCoordinator(hass, entry)
+    for reading in READINGS:
+        if reading.key in {"override_requested_duration", "override_remaining"}:
+            sensor = EconiqExtendedSensor(coordinator, reading)
+            assert sensor.device_class == SensorDeviceClass.DURATION
+            assert sensor.options is None
+            assert sensor.native_unit_of_measurement == "min"

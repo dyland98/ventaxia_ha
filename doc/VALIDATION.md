@@ -4,7 +4,7 @@ Les six anciens boutons Econiq sont supprimés de la plateforme et du registre,
 y compris lorsqu’ils sont désactivés. Le test HA vérifie la conservation du bouton
 d’annulation sélectionnée avec son identifiant existant, son nouveau nom, les
 entités d’autres types et d’autres entrées, et l’absence de commande au démarrage.
-Les 123 tests passent, ainsi que les contrôles de style et de packaging.
+Les 124 tests passent, ainsi que les contrôles de style et de packaging.
 Les tests couvrent toujours les commandes de mode/durée et l’unique abonnement MQTT.
 Aucun test d’installation HACS ou de commande sur VMC réelle n’est revendiqué.
 
@@ -20,7 +20,7 @@ Le mécanisme précédent interceptait l’erreur mais ne pouvait pas rétablir 
 session déjà fermée. Le nouveau test simule cette fermeture lors d’une seconde
 souscription ; il vérifie aussi la réception des données de base et du bypass.
 
-**123 tests passent**, avec transport simulé et réseau bloqué. Style et cohérence
+**124 tests passent**, avec transport simulé et réseau bloqué. Style et cohérence
 du packaging vérifiés. Aucune commande réelle n’a été envoyée à la VMC. Le
 correctif doit encore être installé via HACS et confirmé sur cet appareil.
 
@@ -28,7 +28,7 @@ correctif doit encore être installé via HACS et confirmé sur cet appareil.
 
 # Validation des fonctions complémentaires — 2026-10-20
 
-Implémentation sur le `main` local du fork. **123 tests automatisés passent**
+Implémentation sur le `main` local du fork. **124 tests automatisés passent**
 avec transport simulé, réseau bloqué et sockets Unix autorisées pour asyncio.
 Les vérifications Black, isort, flake8, JSON, cohérence de version/packaging et
 `git diff --check` passent également.

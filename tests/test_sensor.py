@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, patch
 
+from homeassistant.config_entries import ConfigEntryDisabler
 from homeassistant.const import Platform
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -121,7 +122,10 @@ async def test_entities_registered_in_home_assistant(hass, econiq_data, fake_cli
         config_entry=entry,
     )
     other_entry = MockConfigEntry(
-        domain=DOMAIN, data=econiq_data, unique_id="econiq:OTHER"
+        domain=DOMAIN,
+        data=econiq_data,
+        unique_id="econiq:OTHER",
+        disabled_by=ConfigEntryDisabler.USER,
     )
     other_entry.add_to_hass(hass)
     other = registry.async_get_or_create(
