@@ -82,13 +82,16 @@ class EconiqCoordinator:
                 ) as client:
                     await client.subscribe(self.cache.prefix + "#", qos=0)
                     self._client = client
-                    # Require fresh metadata after every connection before exposing controls.
+                    # Require fresh, allowlisted telemetry after every connection.
                     self.cache.values.clear()
                     async for message in client.messages:
                         if self.cache.update(
                             str(message.topic), bytes(message.payload)
                         ):
-                            self.available = self.cache.valid_device
+                            # Some devices do not publish mdet/moddet in response
+                            # to a fresh subscription. Valid allowlisted telemetry
+                            # still confirms the active MQTT data path.
+                            self.available = self.cache.has_telemetry
                             if self.available:
                                 self._ready.set()
                                 delay = 2

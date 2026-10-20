@@ -145,6 +145,21 @@ async def test_validation_receives_metadata_without_commands(
     assert fake_client.closed
 
 
+async def test_validation_accepts_known_telemetry_without_model_metadata(
+    hass, econiq_data, fake_client
+):
+    fake_client.feed("vent/afs/fm", b"33")
+    fake_client.feed("mdet/wifi/sta", b'{"rssi":-72,"mode":2}')
+    with patch(
+        "custom_components.ventaxia_ha.config_flow.create_client",
+        return_value=fake_client,
+    ):
+        result = await validate_econiq(hass, econiq_data)
+    assert result["title"] == "Sentinel Econiq (vmc.example)"
+    fake_client.publish.assert_not_awaited()
+    assert fake_client.closed
+
+
 async def test_validation_reports_timeout_only_after_successful_subscribe(
     hass, econiq_data, fake_client
 ):

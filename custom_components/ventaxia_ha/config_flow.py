@@ -104,7 +104,7 @@ ECONIQ_SCHEMA = vol.Schema(
 
 
 async def validate_econiq(hass, data):
-    """Validate TLS, CONNACK, SUBACK and metadata without publishing commands."""
+    """Validate TLS, MQTT subscription and device telemetry without commands."""
     context = await hass.async_add_executor_job(
         create_tls_context, data[CONF_PSK_KEY], data[CONF_IDENTITY]
     )
@@ -120,8 +120,14 @@ async def validate_econiq(hass, data):
         async with asyncio.timeout(30):
             async for message in client.messages:
                 cache.update(str(message.topic), bytes(message.payload))
-                if cache.valid_device:
-                    return {"title": cache.metadata["mn"]}
+                if cache.has_telemetry:
+                    model = cache.metadata.get("mn")
+                    title = (
+                        model
+                        if isinstance(model, str) and "econiq" in model.lower()
+                        else f"Sentinel Econiq ({data[CONF_HOST]})"
+                    )
+                    return {"title": title}
         raise CannotConnect("MQTT connection ended before Econiq metadata arrived")
 
 

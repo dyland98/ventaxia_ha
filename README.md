@@ -86,8 +86,8 @@ Enter its host, port (default 8883), PSK identity (default `zirconia`), private
 hexadecimal PSK and explicit MQTT prefix, optionally ending with `/`. The prefix
 is not the Wi-Fi SSID. No broker add-on, cloud account or bridge is needed.
 The connection check establishes TLS/MQTT, subscribes to this prefix, then waits
-up to 30 seconds for Econiq model/serial metadata. If that metadata does not
-arrive, verify the prefix and device messages.
+up to 30 seconds for a recognized telemetry topic. Model and serial metadata are
+used when the device publishes them, but are not required for setup.
 
 The hexadecimal PSK is decoded to bytes, never encoded as the literal hex text.
 The key is masked in the form, stored in HA config entry storage and excluded
@@ -98,7 +98,7 @@ values have no assumed units. Warnings/faults are raw values, not counts.
 Mode shows raw `vent/caf.ps`; only `3` (Boost) is confirmed by the supplied traces.
 Override attributes preserve `trem` without interpreting its time semantics.
 Nonfinite or absent measurements become unknown, never zero. Connection loss
-makes entities unavailable; a reconnect waits for fresh model metadata.
+makes entities unavailable; a reconnect waits for fresh recognized telemetry.
 
 The **Boost 15 minutes** button sends `{"gtm":3,"treq":"00:15:00"}` to
 `<prefix>/vent/uo`, QoS 0, retain false. The **Cancel Boost (to validate)** button

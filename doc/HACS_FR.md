@@ -129,11 +129,12 @@ restaurer le dossier précédent et son référencement HACS, puis redémarrer.
    préfixe MQTT explicitement observé. Il ne s’agit pas du SSID Wi-Fi.
    Aucune adresse, clé, numéro de série ou préfixe de votre appareil n’est imposé.
 9. La validation établit TLS 1.2 / `PSK-AES128-CBC-SHA`, MQTT 3.1.1, s’abonne
-   au préfixe et attend des métadonnées Econiq avec numéro de série. Aucune
+  au préfixe et attend un topic de télémétrie reconnu. Les métadonnées modèle/
+  numéro de série sont utilisées si la VMC les publie, mais ne sont pas requises. Aucune
    publication de commande n’est nécessaire. Une erreur peut provenir du réseau,
-  de la PSK ou du réseau. Si TLS et l’abonnement MQTT réussissent mais que le
-  modèle et le numéro de série ne sont pas reçus sous 30 s, vérifier le préfixe
-  et la télémétrie publiée par la VMC.
+  de la PSK ou d’un refus d’abonnement. Si TLS et l’abonnement MQTT réussissent
+  mais qu’aucune télémétrie reconnue n’arrive sous 30 s, vérifier le préfixe et
+  les topics publiés par la VMC.
 10. Vérifier le regroupement des capteurs et boutons sous un même appareil.
 
 Installation manuelle équivalente : arrêter HA, copier **le dossier complet**
@@ -162,7 +163,7 @@ et l’activation du Boost, pas ce nouveau code.
   cette annulation comme testée avant observation. Le Boost expire après 15 min.
 - Couper temporairement l’accès réseau VMC : les entités doivent devenir
   indisponibles après détection de la rupture MQTT (keepalive 60 s). Restaurer le
-  réseau, vérifier la reconnexion avec temporisation et les états frais.
+  réseau, vérifier la reconnexion avec temporisation et la réception de données.
 - Redémarrer HA puis la VMC séparément. Vérifier la reprise sans app mobile, sans
   commande Boost automatique et avec les mêmes identifiants d’entités.
 - Décharger/recharger l’entrée, vérifier l’absence de tâches MQTT restantes.

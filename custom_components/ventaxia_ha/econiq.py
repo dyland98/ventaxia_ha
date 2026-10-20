@@ -157,6 +157,11 @@ class EconiqCache:
             and bool(self.metadata.get("sn"))
         )
 
+    @property
+    def has_telemetry(self) -> bool:
+        """Whether at least one allowlisted device topic has parsed successfully."""
+        return bool(self.values)
+
 
 def boost_payload(cancel: bool = False) -> str:
     """Only Boost is exposed. Cancellation still needs hardware validation."""

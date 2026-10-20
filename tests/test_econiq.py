@@ -54,7 +54,9 @@ def test_invalid_prefix(prefix):
 
 def test_cache_partial_messages_and_malformed_payloads():
     cache = EconiqCache("TEST-UNIT/")
+    assert not cache.has_telemetry
     assert cache.update("TEST-UNIT/io/t1", b"9.8")
+    assert cache.has_telemetry
     assert cache.update("TEST-UNIT/mdet/warns", b"6144")
     assert cache.values["io/t1"] == 9.8
     assert cache.values["mdet/warns"] == 6144
@@ -154,6 +156,22 @@ async def test_reconnect_clean_shutdown_and_commands(hass, econiq_data, fake_cli
             and not coordinator.available
             and coordinator._task is None
         )
+
+
+async def test_coordinator_available_without_model_metadata(
+    hass, econiq_data, fake_client
+):
+    coordinator = await make_coordinator(hass, econiq_data)
+    fake_client.feed("vent/afs/fm", b"33")
+    with patch(
+        "custom_components.ventaxia_ha.econiq_coordinator.create_client",
+        return_value=fake_client,
+    ):
+        await coordinator.async_start()
+        assert coordinator.available
+        assert coordinator.cache.metadata == {}
+        assert coordinator.cache.values["vent/afs/fm"] == 33.0
+        await coordinator.async_stop()
 
 
 async def test_stop_during_failed_connection(hass, econiq_data, fake_client):
