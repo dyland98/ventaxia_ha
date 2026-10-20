@@ -67,8 +67,32 @@
       "irh": {
         "name": "Humidité IRH"
       },
+      "eco2": {
+        "name": "io/eco2/val (brut)"
+      },
+      "ico2": {
+        "name": "io/ico2/val (brut)"
+      },
+      "zone2_co2": {
+        "name": "zone/2/co2 (brut)"
+      },
+      "zone2_t": {
+        "name": "zone/2/t (brut)"
+      },
+      "sn1_rh": {
+        "name": "sn/1/rh (brut)"
+      },
       "power": {
         "name": "Puissance"
+      },
+      "vent_cm": {
+        "name": "vent/cm (brut)"
+      },
+      "vent_saq": {
+        "name": "vent/saq (brut)"
+      },
+      "vent_maxaf": {
+        "name": "vent/maxaf (brut)"
       },
       "faults": {
         "name": "Défauts (valeur brute)"
@@ -100,6 +124,12 @@
       "afs_fd": {
         "name": "AFS fd"
       },
+      "afs_pwm": {
+        "name": "AFS PWM (brut)"
+      },
+      "afs_dr": {
+        "name": "AFS dr (brut)"
+      },
       "afe_rpm": {
         "name": "AFE rpm"
       },
@@ -111,6 +141,12 @@
       },
       "afe_fd": {
         "name": "AFE fd"
+      },
+      "afe_pwm": {
+        "name": "AFE PWM (brut)"
+      },
+      "afe_dr": {
+        "name": "AFE dr (brut)"
       },
       "filter1_pa": {
         "name": "Filtre 1 pa (brut)"

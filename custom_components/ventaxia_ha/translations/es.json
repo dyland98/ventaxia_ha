@@ -21,13 +21,13 @@
       },
       "econiq": {
         "title": "Sentinel Econiq",
-        "description": "Direct local connection. The MQTT prefix differs from the Wi-Fi SSID. Validation sends no commands.",
+        "description": "Conexión local directa. El prefijo MQTT es distinto del SSID Wi-Fi. La validación no envía comandos.",
         "data": {
-          "host": "Host / IP address",
-          "port": "Port",
-          "identity": "PSK identity",
-          "psk_key": "Hexadecimal PSK (private)",
-          "mqtt_prefix": "MQTT prefix"
+          "host": "Host / dirección IP",
+          "port": "Puerto",
+          "identity": "Identidad PSK",
+          "psk_key": "PSK hexadecimal (privada)",
+          "mqtt_prefix": "Prefijo MQTT"
         }
       }
     },
@@ -35,9 +35,9 @@
       "cannot_connect": "No se puede conectar al dispositivo Vent-Axia. Verifique el host, el puerto y la conexión de red.",
       "auth": "El Clave WiFi o la identidad son incorrectos.",
       "unknown": "Se produjo un error inesperado. Por favor, revise los registros.",
-      "psk_unavailable": "This HA runtime has no TLS-PSK. Python ≥3.13 and OpenSSL with ssl.HAS_PSK and set_psk_client_callback are required.",
-      "invalid_psk_or_prefix": "Check PSK: nonempty, even-length hexadecimal, nonzero; use a valid identity and a prefix without + or #.",
-      "no_econiq_metadata": "No Econiq metadata received under this prefix within 15 s. Check the MQTT prefix and telemetry."
+      "psk_unavailable": "Este runtime de HA no ofrece TLS-PSK. Se requieren las API ssl.HAS_PSK y SSLContext.set_psk_client_callback, además del cifrado PSK-AES128-CBC-SHA de OpenSSL.",
+      "invalid_psk_or_prefix": "Comprueba la PSK: hexadecimal no vacía, de longitud par y distinta de cero; usa una identidad válida y un prefijo sin + ni #.",
+      "no_econiq_metadata": "No se recibieron metadatos Econiq con este prefijo en 15 s. Comprueba el prefijo MQTT y la telemetría."
     },
     "abort": {
       "already_configured": "This device is already configured."
@@ -63,8 +63,32 @@
       "irh": {
         "name": "Humidity IRH"
       },
+      "eco2": {
+        "name": "io/eco2/val (bruto)"
+      },
+      "ico2": {
+        "name": "io/ico2/val (bruto)"
+      },
+      "zone2_co2": {
+        "name": "zone/2/co2 (bruto)"
+      },
+      "zone2_t": {
+        "name": "zone/2/t (bruto)"
+      },
+      "sn1_rh": {
+        "name": "sn/1/rh (bruto)"
+      },
       "power": {
         "name": "Power"
+      },
+      "vent_cm": {
+        "name": "vent/cm (bruto)"
+      },
+      "vent_saq": {
+        "name": "vent/saq (bruto)"
+      },
+      "vent_maxaf": {
+        "name": "vent/maxaf (bruto)"
       },
       "faults": {
         "name": "Faults (raw value)"
@@ -96,6 +120,12 @@
       "afs_fd": {
         "name": "AFS fd"
       },
+      "afs_pwm": {
+        "name": "AFS PWM (bruto)"
+      },
+      "afs_dr": {
+        "name": "AFS dr (bruto)"
+      },
       "afe_rpm": {
         "name": "AFE rpm"
       },
@@ -107,6 +137,12 @@
       },
       "afe_fd": {
         "name": "AFE fd"
+      },
+      "afe_pwm": {
+        "name": "AFE PWM (bruto)"
+      },
+      "afe_dr": {
+        "name": "AFE dr (bruto)"
       },
       "filter1_pa": {
         "name": "Filter 1 pa (raw)"

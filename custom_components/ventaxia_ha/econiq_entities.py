@@ -13,7 +13,16 @@ SENSORS = [
     *((f"t{i}", f"io/t{i}", "°C", SensorDeviceClass.TEMPERATURE) for i in range(1, 5)),
     ("erh", "io/erh/val", "%", SensorDeviceClass.HUMIDITY),
     ("irh", "io/irh/val", "%", SensorDeviceClass.HUMIDITY),
+    # Measurements retained by the parser but kept unit-neutral until confirmed.
+    ("eco2", "io/eco2/val", None, None),
+    ("ico2", "io/ico2/val", None, None),
+    ("zone2_co2", "zone/2/co2", None, None),
+    ("zone2_t", "zone/2/t", None, None),
+    ("sn1_rh", "sn/1/rh", None, None),
     ("power", "mdet/pwr", "W", SensorDeviceClass.POWER),
+    ("vent_cm", "vent/cm", None, None),
+    ("vent_saq", "vent/saq", None, None),
+    ("vent_maxaf", "vent/maxaf", None, None),
     *(
         (f"{fan}_{field}", f"vent/{fan}/{field}", unit, cls)
         for fan in ("afs", "afe")
@@ -22,6 +31,8 @@ SENSORS = [
             ("pwr", "W", SensorDeviceClass.POWER),
             ("fm", None, None),
             ("fd", None, None),
+            ("pwm", None, None),
+            ("dr", None, None),
         )
     ),
     *(

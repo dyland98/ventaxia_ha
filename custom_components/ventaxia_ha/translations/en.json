@@ -63,8 +63,32 @@
       "irh": {
         "name": "Humidity IRH"
       },
+      "eco2": {
+        "name": "io/eco2/val (raw)"
+      },
+      "ico2": {
+        "name": "io/ico2/val (raw)"
+      },
+      "zone2_co2": {
+        "name": "zone/2/co2 (raw)"
+      },
+      "zone2_t": {
+        "name": "zone/2/t (raw)"
+      },
+      "sn1_rh": {
+        "name": "sn/1/rh (raw)"
+      },
       "power": {
         "name": "Power"
+      },
+      "vent_cm": {
+        "name": "vent/cm (raw)"
+      },
+      "vent_saq": {
+        "name": "vent/saq (raw)"
+      },
+      "vent_maxaf": {
+        "name": "vent/maxaf (raw)"
       },
       "faults": {
         "name": "Faults (raw value)"
@@ -96,6 +120,12 @@
       "afs_fd": {
         "name": "AFS fd"
       },
+      "afs_pwm": {
+        "name": "AFS PWM (raw)"
+      },
+      "afs_dr": {
+        "name": "AFS dr (raw)"
+      },
       "afe_rpm": {
         "name": "AFE rpm"
       },
@@ -107,6 +137,12 @@
       },
       "afe_fd": {
         "name": "AFE fd"
+      },
+      "afe_pwm": {
+        "name": "AFE PWM (raw)"
+      },
+      "afe_dr": {
+        "name": "AFE dr (raw)"
       },
       "filter1_pa": {
         "name": "Filter 1 pa (raw)"

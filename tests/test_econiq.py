@@ -23,6 +23,7 @@ from custom_components.ventaxia_ha.econiq import (
 )
 from custom_components.ventaxia_ha.econiq_coordinator import EconiqCoordinator
 from custom_components.ventaxia_ha.econiq_entities import (
+    SENSORS,
     EconiqBoostButton,
     EconiqSensor,
 )
@@ -72,6 +73,28 @@ def test_cache_partial_messages_and_malformed_payloads():
         assert cache.values["io/t1"] is None
     cache.update("TEST-UNIT/vent/cor", b'{"ot":9,"trem":"uninterpreted","bad":NaN}')
     assert cache.values["vent/cor"]["bad"] is None
+
+
+def test_supported_numeric_topics_have_neutral_sensors():
+    sensor_topics = {description[1] for description in SENSORS}
+    for topic in (
+        "io/eco2/val",
+        "io/ico2/val",
+        "zone/2/co2",
+        "zone/2/t",
+        "sn/1/rh",
+        "vent/cm",
+        "vent/saq",
+        "vent/maxaf",
+        "vent/afs/pwm",
+        "vent/afe/dr",
+    ):
+        assert topic in sensor_topics
+    assert all(
+        description[2] is None
+        for description in SENSORS
+        if description[1] in {"zone/2/co2", "zone/2/t", "vent/afs/pwm"}
+    )
 
 
 def test_mqtt_client_parameters(econiq_data):
